@@ -1,12 +1,24 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Users, Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useState, useEffect } from "react";
+import { Users, Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,21 +29,151 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+
+interface SubKriteria {
+  id: number;
+  kriteria_id: number;
+  nama: string;
+  bobot: string;
+  keterangan: string;
+  kode_kriteria: string;
+  nama_kriteria: string;
+}
+
+interface Kriteria {
+  id: number;
+  kode: string;
+  nama: string;
+}
 
 export default function DataSubKriteriaPage() {
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [isEditOpen, setIsEditOpen] = useState(false)
-  const [editingItem, setEditingItem] = useState<number | null>(null)
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<SubKriteria | null>(null);
+  const [subKriteriaData, setSubKriteriaData] = useState<SubKriteria[]>([]);
+  const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleEdit = (id: number) => {
-    setEditingItem(id)
-    setIsEditOpen(true)
-  }
+  // Form states
+  const [formData, setFormData] = useState({
+    kriteria_id: "",
+    nama: "",
+    bobot: "",
+    keterangan: "",
+  });
 
-  const handleDelete = (id: number) => {
-    console.log("Delete item:", id)
-  }
+  useEffect(() => {
+    fetchSubKriteria();
+    fetchKriteria();
+  }, []);
+
+  const fetchSubKriteria = async () => {
+    try {
+      const response = await fetch("/api/sub-kriteria");
+      if (response.ok) {
+        const data = await response.json();
+        setSubKriteriaData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching sub kriteria:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchKriteria = async () => {
+    try {
+      const response = await fetch("/api/kriteria");
+      if (response.ok) {
+        const data = await response.json();
+        setKriteriaData(data);
+      }
+    } catch (error) {
+      console.error("Error fetching kriteria:", error);
+    }
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("/api/sub-kriteria", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          kriteria_id: parseInt(formData.kriteria_id),
+        }),
+      });
+
+      if (response.ok) {
+        await fetchSubKriteria();
+        setIsAddOpen(false);
+        setFormData({ kriteria_id: "", nama: "", bobot: "", keterangan: "" });
+      }
+    } catch (error) {
+      console.error("Error adding sub kriteria:", error);
+    }
+  };
+
+  const handleEdit = (item: SubKriteria) => {
+    setEditingItem(item);
+    setFormData({
+      kriteria_id: item.kriteria_id.toString(),
+      nama: item.nama,
+      bobot: item.bobot,
+      keterangan: item.keterangan || "",
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    try {
+      const response = await fetch("/api/sub-kriteria", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingItem.id,
+          ...formData,
+          kriteria_id: parseInt(formData.kriteria_id),
+        }),
+      });
+
+      if (response.ok) {
+        await fetchSubKriteria();
+        setIsEditOpen(false);
+        setEditingItem(null);
+        setFormData({ kriteria_id: "", nama: "", bobot: "", keterangan: "" });
+      }
+    } catch (error) {
+      console.error("Error updating sub kriteria:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(`/api/sub-kriteria?id=${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        await fetchSubKriteria();
+      }
+    } catch (error) {
+      console.error("Error deleting sub kriteria:", error);
+    }
+  };
+
+  const filteredData = subKriteriaData.filter(
+    (item) =>
+      item.kode_kriteria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.nama_kriteria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.nama.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="p-6">
@@ -39,7 +181,9 @@ export default function DataSubKriteriaPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <Users className="h-6 w-6 text-gray-600" />
-          <h1 className="text-xl font-semibold text-gray-800">Data Sub Kriteria</h1>
+          <h1 className="text-xl font-semibold text-gray-800">
+            Data Sub Kriteria
+          </h1>
         </div>
 
         {/* Add Dialog */}
@@ -60,54 +204,148 @@ export default function DataSubKriteriaPage() {
               </div>
             </DialogHeader>
 
-            <form className="space-y-6">
+            <form onSubmit={handleAdd} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="add-kode" className="text-sm font-medium text-gray-700 mb-2 block">
+                  <Label
+                    htmlFor="add-kriteria"
+                    className="text-sm font-medium text-gray-700 mb-2 block"
+                  >
                     Kode Kriteria
                   </Label>
-                  <Select>
+                  <Select
+                    value={formData.kriteria_id}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, kriteria_id: value }))
+                    }
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="--Pilih Kode Kriteria--" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="c1">C1</SelectItem>
-                      <SelectItem value="c2">C2</SelectItem>
-                      <SelectItem value="c3">C3</SelectItem>
+                      {kriteriaData.map((kriteria) => (
+                        <SelectItem
+                          key={kriteria.id}
+                          value={kriteria.id.toString()}
+                        >
+                          {kriteria.kode} - {kriteria.nama}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="add-nama-sub" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Nama Sub Kriteria
+                  <Label
+                    htmlFor="add-nama-kriteria"
+                    className="text-sm font-medium text-gray-700 mb-2 block"
+                  >
+                    Nama Kriteria
                   </Label>
-                  <Input id="add-nama-sub" type="text" className="w-full" />
+                  <Input
+                    id="add-nama-kriteria"
+                    type="text"
+                    className="w-full bg-gray-100"
+                    value={
+                      kriteriaData.find(
+                        (k) => k.id.toString() === formData.kriteria_id
+                      )?.nama || ""
+                    }
+                    readOnly
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="add-nama" className="text-sm font-medium text-gray-700 mb-2 block">
-                    Nama Kriteria
+                  <Label
+                    htmlFor="add-nama-sub"
+                    className="text-sm font-medium text-gray-700 mb-2 block"
+                  >
+                    Nama Sub Kriteria
                   </Label>
-                  <Input id="add-nama" type="text" className="w-full" />
+                  <Input
+                    id="add-nama-sub"
+                    type="text"
+                    className="w-full"
+                    value={formData.nama}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, nama: e.target.value }))
+                    }
+                    required
+                  />
                 </div>
 
                 <div>
-                  <Label htmlFor="add-bobot" className="text-sm font-medium text-gray-700 mb-2 block">
+                  <Label
+                    htmlFor="add-bobot"
+                    className="text-sm font-medium text-gray-700 mb-2 block"
+                  >
                     Nilai Bobot
                   </Label>
-                  <Input id="add-bobot" type="text" placeholder="Masukkan Nilai Bobot 5-1" className="w-full" />
+                  <Select
+                    value={formData.bobot}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, bobot: value }))
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih Nilai Bobot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5 - Sangat Baik</SelectItem>
+                      <SelectItem value="4">4 - Baik</SelectItem>
+                      <SelectItem value="3">3 - Cukup</SelectItem>
+                      <SelectItem value="2">2 - Kurang</SelectItem>
+                      <SelectItem value="1">1 - Sangat Kurang</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
+              <div>
+                <Label
+                  htmlFor="add-keterangan"
+                  className="text-sm font-medium text-gray-700 mb-2 block"
+                >
+                  Keterangan (Opsional)
+                </Label>
+                <Input
+                  id="add-keterangan"
+                  type="text"
+                  className="w-full"
+                  value={formData.keterangan}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      keterangan: e.target.value,
+                    }))
+                  }
+                  placeholder="Masukkan keterangan..."
+                />
+              </div>
+
               <div className="flex gap-4 pt-4">
-                <Button type="submit" className="bg-green-600 hover:bg-green-700" onClick={() => setIsAddOpen(false)}>
+                <Button
+                  type="submit"
+                  className="bg-green-600 hover:bg-green-700"
+                >
                   <Save className="h-4 w-4 mr-2" />
                   Simpan
                 </Button>
-                <Button type="button" variant="destructive" onClick={() => setIsAddOpen(false)}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => {
+                    setIsAddOpen(false);
+                    setFormData({
+                      kriteria_id: "",
+                      nama: "",
+                      bobot: "",
+                      keterangan: "",
+                    });
+                  }}
+                >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Kembali
                 </Button>
@@ -132,7 +370,12 @@ export default function DataSubKriteriaPage() {
           <div className="flex justify-end">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Cari:</span>
-              <Input className="w-48" placeholder="Search..." />
+              <Input
+                className="w-48"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -143,58 +386,108 @@ export default function DataSubKriteriaPage() {
             <thead>
               <tr className="bg-red-500 text-white">
                 <th className="px-6 py-3 text-left text-sm font-medium">No</th>
-                <th className="px-6 py-3 text-left text-sm font-medium">Kode Kriteria</th>
-                <th className="px-6 py-3 text-left text-sm font-medium">Nama Kriteria</th>
-                <th className="px-6 py-3 text-left text-sm font-medium">Nama Sub Kriteria</th>
-                <th className="px-6 py-3 text-left text-sm font-medium">Nilai Bobot</th>
-                <th className="px-6 py-3 text-left text-sm font-medium">Aksi</th>
+                <th className="px-6 py-3 text-left text-sm font-medium">
+                  Kode Kriteria
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium">
+                  Nama Kriteria
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium">
+                  Nama Sub Kriteria
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium">
+                  Nilai Bobot
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium">
+                  Aksi
+                </th>
               </tr>
             </thead>
             <tbody>
-              {[1, 2, 3, 4].map((item) => (
-                <tr key={item} className="border-b border-gray-200">
-                  <td className="px-6 py-4 text-sm text-gray-900">{item}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">C{item}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">Kriteria {item}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">Sub Kriteria {item}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{item}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex gap-2">
-                      <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleEdit(item)}>
-                        <Edit className="h-3 w-3 mr-1" />
-                        Ubah
-                      </Button>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button size="sm" variant="destructive">
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            Hapus
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Apakah Anda yakin ingin menghapus data sub kriteria ini? Tindakan ini tidak dapat
-                              dibatalkan.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Batal</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(item)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Hapus
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    Loading...
                   </td>
                 </tr>
-              ))}
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-sm text-gray-500"
+                  >
+                    Tidak ada data sub kriteria
+                  </td>
+                </tr>
+              ) : (
+                filteredData.map((item, index) => (
+                  <tr
+                    key={item.id}
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {item.kode_kriteria}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {item.nama_kriteria}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {item.nama}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-900">
+                      {item.bobot}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => handleEdit(item)}
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Ubah
+                        </Button>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive">
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Hapus
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Konfirmasi Hapus
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Apakah Anda yakin ingin menghapus data sub
+                                kriteria "{item.nama}"? Tindakan ini tidak dapat
+                                dibatalkan.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Batal</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(item.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Hapus
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -212,60 +505,146 @@ export default function DataSubKriteriaPage() {
             </div>
           </DialogHeader>
 
-          <form className="space-y-6">
+          <form onSubmit={handleUpdate} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="edit-kode" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label
+                  htmlFor="edit-kriteria"
+                  className="text-sm font-medium text-gray-700 mb-2 block"
+                >
                   Kode Kriteria
                 </Label>
-                <Select defaultValue={`c${editingItem}`}>
+                <Select
+                  value={formData.kriteria_id}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, kriteria_id: value }))
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="--Pilih Kode Kriteria--" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="c1">C1</SelectItem>
-                    <SelectItem value="c2">C2</SelectItem>
-                    <SelectItem value="c3">C3</SelectItem>
+                    {kriteriaData.map((kriteria) => (
+                      <SelectItem
+                        key={kriteria.id}
+                        value={kriteria.id.toString()}
+                      >
+                        {kriteria.kode} - {kriteria.nama}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="edit-nama-sub" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Nama Sub Kriteria
+                <Label
+                  htmlFor="edit-nama-kriteria"
+                  className="text-sm font-medium text-gray-700 mb-2 block"
+                >
+                  Nama Kriteria
                 </Label>
-                <Input id="edit-nama-sub" type="text" className="w-full" defaultValue={`Sub Kriteria ${editingItem}`} />
+                <Input
+                  id="edit-nama-kriteria"
+                  type="text"
+                  className="w-full bg-gray-100"
+                  value={
+                    kriteriaData.find(
+                      (k) => k.id.toString() === formData.kriteria_id
+                    )?.nama || ""
+                  }
+                  readOnly
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <Label htmlFor="edit-nama" className="text-sm font-medium text-gray-700 mb-2 block">
-                  Nama Kriteria
+                <Label
+                  htmlFor="edit-nama-sub"
+                  className="text-sm font-medium text-gray-700 mb-2 block"
+                >
+                  Nama Sub Kriteria
                 </Label>
-                <Input id="edit-nama" type="text" className="w-full" defaultValue={`Kriteria ${editingItem}`} />
+                <Input
+                  id="edit-nama-sub"
+                  type="text"
+                  className="w-full"
+                  value={formData.nama}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, nama: e.target.value }))
+                  }
+                  required
+                />
               </div>
 
               <div>
-                <Label htmlFor="edit-bobot" className="text-sm font-medium text-gray-700 mb-2 block">
+                <Label
+                  htmlFor="edit-bobot"
+                  className="text-sm font-medium text-gray-700 mb-2 block"
+                >
                   Nilai Bobot
                 </Label>
-                <Input
-                  id="edit-bobot"
-                  type="text"
-                  placeholder="Masukkan Nilai Bobot 5-1"
-                  className="w-full"
-                  defaultValue={editingItem?.toString()}
-                />
+                <Select
+                  value={formData.bobot}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, bobot: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Pilih Nilai Bobot" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 - Sangat Baik</SelectItem>
+                    <SelectItem value="4">4 - Baik</SelectItem>
+                    <SelectItem value="3">3 - Cukup</SelectItem>
+                    <SelectItem value="2">2 - Kurang</SelectItem>
+                    <SelectItem value="1">1 - Sangat Kurang</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
+            <div>
+              <Label
+                htmlFor="edit-keterangan"
+                className="text-sm font-medium text-gray-700 mb-2 block"
+              >
+                Keterangan (Opsional)
+              </Label>
+              <Input
+                id="edit-keterangan"
+                type="text"
+                className="w-full"
+                value={formData.keterangan}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    keterangan: e.target.value,
+                  }))
+                }
+                placeholder="Masukkan keterangan..."
+              />
+            </div>
+
             <div className="flex gap-4 pt-4">
-              <Button type="submit" className="bg-green-600 hover:bg-green-700" onClick={() => setIsEditOpen(false)}>
+              <Button type="submit" className="bg-green-600 hover:bg-green-700">
                 <Save className="h-4 w-4 mr-2" />
                 Simpan
               </Button>
-              <Button type="button" variant="destructive" onClick={() => setIsEditOpen(false)}>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => {
+                  setIsEditOpen(false);
+                  setEditingItem(null);
+                  setFormData({
+                    kriteria_id: "",
+                    nama: "",
+                    bobot: "",
+                    keterangan: "",
+                  });
+                }}
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Kembali
               </Button>
@@ -274,5 +653,5 @@ export default function DataSubKriteriaPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
