@@ -10,7 +10,6 @@ import {
   Calculator,
   TrendingUp,
   Award,
-  Database,
   Users,
 } from "lucide-react";
 
@@ -19,13 +18,6 @@ interface DashboardStats {
   kriteria: number;
   subKriteria: number;
   penilaian: number;
-}
-
-interface RecentActivity {
-  id: number;
-  action: string;
-  timestamp: string;
-  details: string;
 }
 
 export default function BerandaPage() {
@@ -69,27 +61,6 @@ export default function BerandaPage() {
       setLoading(false);
     }
   };
-
-  const recentActivities: RecentActivity[] = [
-    {
-      id: 1,
-      action: "Data Seed Imported",
-      timestamp: "2024-01-15 10:30",
-      details: "5 alternatif dan 25 sub kriteria berhasil ditambahkan",
-    },
-    {
-      id: 2,
-      action: "Assessment Matrix Created",
-      timestamp: "2024-01-15 10:35",
-      details: "Matrix penilaian 5x5 untuk metode WP telah dibuat",
-    },
-    {
-      id: 3,
-      action: "Weighted Product Calculation",
-      timestamp: "2024-01-15 10:40",
-      details: "Perhitungan Vector S dan Vector V berhasil dijalankan",
-    },
-  ];
 
   return (
     <div className="p-6 space-y-6">
@@ -188,128 +159,70 @@ export default function BerandaPage() {
         </div>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* System Overview */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              <span className="font-medium">Sistem Overview</span>
-            </div>
+      {/* System Overview */}
+      <div className=" bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            <span className="font-medium">Sistem Overview</span>
           </div>
-          <div className="p-6">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                  Metode Weighted Product (WP)
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Sistem ini mengimplementasikan metode Weighted Product untuk
-                  membantu pemilihan cat dinding terbaik berdasarkan 5 kriteria
-                  utama: Kualitas Pigmen, Harga, Ketahanan, Daya Sebar, dan
-                  Variasi Warna.
+        </div>
+        <div className="p-6">
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                Metode Weighted Product (WP)
+              </h3>
+              <p className="text-gray-600 text-sm leading-relaxed">
+                Sistem ini mengimplementasikan metode Weighted Product untuk
+                membantu pemilihan cat dinding terbaik berdasarkan 5 kriteria
+                utama: Kualitas Pigmen, Harga, Ketahanan, Daya Sebar, dan
+                Variasi Warna.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <span className="font-medium text-gray-800">
+                    Benefit Criteria
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  C1 (Kualitas), C3 (Ketahanan), C4 (Daya Sebar), C5 (Variasi)
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-gray-800">
-                      Benefit Criteria
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    C1 (Kualitas), C3 (Ketahanan), C4 (Daya Sebar), C5 (Variasi)
-                  </p>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="h-4 w-4 text-red-600" />
+                  <span className="font-medium text-gray-800">
+                    Cost Criteria
+                  </span>
                 </div>
-
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="h-4 w-4 text-red-600" />
-                    <span className="font-medium text-gray-800">
-                      Cost Criteria
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    C2 (Harga) - Semakin rendah semakin baik
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-800 mb-2">
-                  Formula Perhitungan:
-                </h4>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p>
-                    <strong>Vector S:</strong> S(Ai) = ∏(Xij^Wj) untuk j=1
-                    sampai n
-                  </p>
-                  <p>
-                    <strong>Vector V:</strong> V(Ai) = S(Ai) / ∑S(Ai)
-                  </p>
-                  <p>
-                    <strong>Ranking:</strong> Alternatif dengan nilai V
-                    tertinggi = terbaik
-                  </p>
-                </div>
+                <p className="text-sm text-gray-600">
+                  C2 (Harga) - Semakin rendah semakin baik
+                </p>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              <span className="font-medium">System Status</span>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Database Status</span>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Connected
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Data Completeness</span>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                  {stats.penilaian > 0 ? "Complete" : "Pending"}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">
-                  Calculation Engine
-                </span>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                  Ready
-                </span>
-              </div>
-
-              <hr className="my-4" />
-
-              <div>
-                <h4 className="font-medium text-gray-800 mb-3">
-                  Quick Actions
-                </h4>
-                <div className="space-y-2">
-                  <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
-                    View Assessment Matrix
-                  </button>
-                  <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
-                    Run WP Calculation
-                  </button>
-                  <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors">
-                    Export Results
-                  </button>
-                </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h4 className="font-medium text-gray-800 mb-2">
+                Formula Perhitungan:
+              </h4>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p>
+                  <strong>Vector S:</strong> S(Ai) = ∏(Xij^Wj) untuk j=1 sampai
+                  n
+                </p>
+                <p>
+                  <strong>Vector V:</strong> V(Ai) = S(Ai) / ∑S(Ai)
+                </p>
+                <p>
+                  <strong>Ranking:</strong> Alternatif dengan nilai V tertinggi
+                  = terbaik
+                </p>
               </div>
             </div>
           </div>
@@ -330,7 +243,7 @@ export default function BerandaPage() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-700">
-                    Alternative
+                    Alternatif
                   </th>
                   <th className="text-center py-3 px-4 font-medium text-gray-700">
                     C1 (Pigmen)

@@ -29,7 +29,7 @@ export async function GET() {
       .leftJoin(sub_kriteria, eq(penilaian.sub_kriteria_id, sub_kriteria.id));
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch penilaian" },
       { status: 500 }
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to create penilaian" },
       { status: 500 }
@@ -69,7 +69,7 @@ export async function PUT(request: NextRequest) {
       .where(eq(penilaian.id, id));
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to update penilaian" },
       { status: 500 }
@@ -89,7 +89,7 @@ export async function DELETE(request: NextRequest) {
     await db.delete(penilaian).where(eq(penilaian.id, parseInt(id)));
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete penilaian" },
       { status: 500 }

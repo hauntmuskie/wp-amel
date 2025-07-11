@@ -19,7 +19,7 @@ export async function GET() {
       .leftJoin(kriteria, eq(sub_kriteria.kriteria_id, kriteria.id));
 
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch sub kriteria" },
       { status: 500 }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to create sub kriteria" },
       { status: 500 }
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest) {
       .where(eq(sub_kriteria.id, id));
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to update sub kriteria" },
       { status: 500 }
@@ -79,7 +79,7 @@ export async function DELETE(request: NextRequest) {
     await db.delete(sub_kriteria).where(eq(sub_kriteria.id, parseInt(id)));
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete sub kriteria" },
       { status: 500 }

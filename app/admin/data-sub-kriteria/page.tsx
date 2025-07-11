@@ -468,8 +468,8 @@ export default function DataSubKriteriaPage() {
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 Apakah Anda yakin ingin menghapus data sub
-                                kriteria "{item.nama}"? Tindakan ini tidak dapat
-                                dibatalkan.
+                                kriteria &quot;{item.nama}&quot;? Tindakan ini
+                                tidak dapat dibatalkan.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

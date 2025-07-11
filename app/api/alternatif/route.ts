@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const data = await db.select().from(alternatif);
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch alternatif" },
       { status: 500 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to create alternatif" },
       { status: 500 }
@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest) {
       .where(eq(alternatif.id, id));
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to update alternatif" },
       { status: 500 }
@@ -66,7 +66,7 @@ export async function DELETE(request: NextRequest) {
     await db.delete(alternatif).where(eq(alternatif.id, parseInt(id)));
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to delete alternatif" },
       { status: 500 }

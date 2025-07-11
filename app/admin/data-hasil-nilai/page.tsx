@@ -243,8 +243,8 @@ export default function DataHasilNilaiPage() {
                       colSpan={6}
                       className="px-6 py-4 text-center text-sm text-gray-500"
                     >
-                      Belum ada hasil perhitungan. Klik tombol "Hitung Weighted
-                      Product" untuk memulai perhitungan.
+                      Belum ada hasil perhitungan. Klik tombol &quot;Hitung
+                      Weighted Product&quot; untuk memulai perhitungan.
                     </td>
                   </tr>
                 ) : (

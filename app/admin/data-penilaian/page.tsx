@@ -340,21 +340,32 @@ export default function DataPenilaianPage() {
   };
 
   // Group penilaian by alternatif
-  const groupedPenilaian = penilaianData.reduce((acc, curr) => {
-    if (!acc[curr.alternatif_id]) {
-      acc[curr.alternatif_id] = {
-        alternatif_id: curr.alternatif_id,
-        kode_alternatif: curr.kode_alternatif,
-        nama_alternatif: curr.nama_alternatif,
-        kriteria: {},
-      };
-    }
-    acc[curr.alternatif_id].kriteria[curr.kode_kriteria] = curr.nilai;
-    return acc;
-  }, {} as Record<number, any>);
+  const groupedPenilaian = penilaianData.reduce(
+    (acc, curr) => {
+      if (!acc[curr.alternatif_id]) {
+        acc[curr.alternatif_id] = {
+          alternatif_id: curr.alternatif_id,
+          kode_alternatif: curr.kode_alternatif,
+          nama_alternatif: curr.nama_alternatif,
+          kriteria: {},
+        };
+      }
+      acc[curr.alternatif_id].kriteria[curr.kode_kriteria] = Number(curr.nilai);
+      return acc;
+    },
+    {} as Record<
+      number,
+      {
+        alternatif_id: number;
+        kode_alternatif: string;
+        nama_alternatif: string;
+        kriteria: Record<string, number>;
+      }
+    >
+  );
 
   const filteredData = Object.values(groupedPenilaian).filter(
-    (item: any) =>
+    (item: { kode_alternatif?: string; nama_alternatif?: string }) =>
       item.kode_alternatif?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.nama_alternatif?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -695,7 +706,7 @@ export default function DataPenilaianPage() {
                   </td>
                 </tr>
               ) : (
-                filteredData.map((item: any, index) => (
+                filteredData.map((item, index) => (
                   <tr
                     key={item.alternatif_id}
                     className="border-b border-gray-200 hover:bg-gray-50"
@@ -755,8 +766,8 @@ export default function DataPenilaianPage() {
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 Apakah Anda yakin ingin menghapus penilaian
-                                untuk "{item.nama_alternatif}"? Tindakan ini
-                                tidak dapat dibatalkan.
+                                untuk &quot;{item.nama_alternatif}&quot;?
+                                Tindakan ini tidak dapat dibatalkan.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

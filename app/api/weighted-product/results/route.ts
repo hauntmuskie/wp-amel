@@ -10,7 +10,6 @@ import { eq } from "drizzle-orm";
 
 export async function GET() {
   try {
-    // Ambil hasil perhitungan
     const hasilData = await db
       .select({
         id: hasil_perhitungan.id,
@@ -25,7 +24,6 @@ export async function GET() {
       .leftJoin(alternatif, eq(hasil_perhitungan.alternatif_id, alternatif.id))
       .orderBy(hasil_perhitungan.ranking);
 
-    // Ambil normalisasi bobot
     const normalisasiData = await db
       .select({
         id: normalisasi_bobot.id,
@@ -43,7 +41,7 @@ export async function GET() {
       hasil_perhitungan: hasilData,
       normalisasi_bobot: normalisasiData,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to fetch results" },
       { status: 500 }
