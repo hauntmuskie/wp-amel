@@ -11,9 +11,11 @@ import {
   TrendingUp,
   FileText,
   LogOut,
-  Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
+
+import RajaBangunanLogo from "@/public/image.png";
 
 const menuItems = [
   {
@@ -66,10 +68,14 @@ export function Sidebar() {
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <Crown className="h-8 w-8 text-red-600" />
-          <div>
-            <h1 className="text-red-600 font-bold text-lg">RAJA BANGUNAN</h1>
-          </div>
+          <Image
+            src={RajaBangunanLogo}
+            alt="Raja Bangunan Logo"
+            width={1200}
+            height={1200}
+            quality={100}
+            className="w-64 h-16 object-cover"
+          />
         </div>
       </div>
 
