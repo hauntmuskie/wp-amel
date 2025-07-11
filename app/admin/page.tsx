@@ -12,6 +12,14 @@ import {
   Award,
   Users,
 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface DashboardStats {
   alternatif: number;
@@ -237,76 +245,62 @@ export default function BerandaPage() {
             <span className="font-medium">Assessment Matrix Preview</span>
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-4">
           <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">
-                    Alternatif
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-700">
-                    C1 (Pigmen)
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-700">
-                    C2 (Harga)
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-700">
-                    C3 (Ketahanan)
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-700">
-                    C4 (Daya Sebar)
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-700">
-                    C5 (Variasi)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 px-4 text-sm">
-                    A1 - Nippon Paint Vinilex
-                  </td>
-                  <td className="py-3 px-4 text-center text-sm">5</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 px-4 text-sm">A2 - Aquaproof</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                  <td className="py-3 px-4 text-center text-sm">2</td>
-                  <td className="py-3 px-4 text-center text-sm">5</td>
-                  <td className="py-3 px-4 text-center text-sm">1</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 px-4 text-sm">A3 - Dulux Catylac</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                  <td className="py-3 px-4 text-center text-sm">2</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                  <td className="py-3 px-4 text-center text-sm">5</td>
-                </tr>
-                <tr className="border-b border-gray-100">
-                  <td className="py-3 px-4 text-sm">A4 - Mowilex Emulsion</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                  <td className="py-3 px-4 text-center text-sm">5</td>
-                  <td className="py-3 px-4 text-center text-sm">2</td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 text-sm">A5 - No Drop</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                  <td className="py-3 px-4 text-center text-sm">4</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                  <td className="py-3 px-4 text-center text-sm">1</td>
-                  <td className="py-3 px-4 text-center text-sm">3</td>
-                </tr>
-              </tbody>
-            </table>
+            <Table className="w-full table-auto">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-left">Alternatif</TableHead>
+                  <TableHead className="text-center">C1 (Pigmen)</TableHead>
+                  <TableHead className="text-center">C2 (Harga)</TableHead>
+                  <TableHead className="text-center">C3 (Ketahanan)</TableHead>
+                  <TableHead className="text-center">C4 (Daya Sebar)</TableHead>
+                  <TableHead className="text-center">C5 (Variasi)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>A1 - Nippon Paint Vinilex</TableCell>
+                  <TableCell className="text-center">5</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>A2 - Aquaproof</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                  <TableCell className="text-center">2</TableCell>
+                  <TableCell className="text-center">5</TableCell>
+                  <TableCell className="text-center">1</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>A3 - Dulux Catylac</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                  <TableCell className="text-center">2</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                  <TableCell className="text-center">5</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>A4 - Mowilex Emulsion</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                  <TableCell className="text-center">5</TableCell>
+                  <TableCell className="text-center">2</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>A5 - No Drop</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                  <TableCell className="text-center">4</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                  <TableCell className="text-center">1</TableCell>
+                  <TableCell className="text-center">3</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-500">

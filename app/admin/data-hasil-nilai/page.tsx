@@ -3,6 +3,14 @@
 import { useState, useEffect } from "react";
 import { TrendingUp, Calculator, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface NormalisasiBobot {
   id: number;
@@ -113,69 +121,49 @@ export default function DataHasilNilaiPage() {
               <span className="font-medium">Perbaikan Bobot Kriteria</span>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-red-500 text-white">
-                  <th className="px-6 py-3 text-left text-sm font-medium">
-                    Kriteria
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    C1 (Benefit)
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    C2 (Cost)
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    C3 (Benefit)
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    C4 (Benefit)
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    C5 (Benefit)
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-200">
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                    Bobot Awal
-                  </td>
-                  {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
-                    const item = normalisasiData.find(
-                      (n) => n.kode_kriteria === kode
-                    );
-                    return (
-                      <td
-                        key={kode}
-                        className="px-6 py-4 text-center text-sm text-gray-900"
-                      >
-                        {item ? item.bobot_awal : "-"}
-                      </td>
-                    );
-                  })}
-                </tr>
-                <tr className="border-b border-gray-200">
-                  <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                    Normalisasi
-                  </td>
-                  {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
-                    const item = normalisasiData.find(
-                      (n) => n.kode_kriteria === kode
-                    );
-                    return (
-                      <td
-                        key={kode}
-                        className="px-6 py-4 text-center text-sm text-gray-900"
-                      >
-                        {item ? formatNumber(item.bobot_normal, 2) : "-"}
-                      </td>
-                    );
-                  })}
-                </tr>
-              </tbody>
-            </table>
+          <div className="p-4">
+            <div className="overflow-x-auto">
+              <Table className="w-full table-auto">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Kriteria</TableHead>
+                    <TableHead className="text-center">C1 (Benefit)</TableHead>
+                    <TableHead className="text-center">C2 (Cost)</TableHead>
+                    <TableHead className="text-center">C3 (Benefit)</TableHead>
+                    <TableHead className="text-center">C4 (Benefit)</TableHead>
+                    <TableHead className="text-center">C5 (Benefit)</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold">Bobot Awal</TableCell>
+                    {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
+                      const item = normalisasiData.find(
+                        (n) => n.kode_kriteria === kode
+                      );
+                      return (
+                        <TableCell key={kode} className="text-center">
+                          {item ? item.bobot_awal : "-"}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Normalisasi</TableCell>
+                    {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
+                      const item = normalisasiData.find(
+                        (n) => n.kode_kriteria === kode
+                      );
+                      return (
+                        <TableCell key={kode} className="text-center">
+                          {item ? formatNumber(item.bobot_normal, 2) : "-"}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           {/* Rumus Explanation */}
@@ -203,91 +191,79 @@ export default function DataHasilNilaiPage() {
               </span>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-red-500 text-white">
-                  <th className="px-6 py-3 text-left text-sm font-medium">
-                    No
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium">
-                    Kode Alternatif
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-medium">
-                    Nama Alternatif
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    Nilai Vektor S
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    Nilai Vektor V
-                  </th>
-                  <th className="px-6 py-3 text-center text-sm font-medium">
-                    Ranking
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-4 text-center text-sm text-gray-500"
-                    >
-                      Loading...
-                    </td>
-                  </tr>
-                ) : hasilData.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-4 text-center text-sm text-gray-500"
-                    >
-                      Belum ada hasil perhitungan. Klik tombol &quot;Hitung
-                      Weighted Product&quot; untuk memulai perhitungan.
-                    </td>
-                  </tr>
-                ) : (
-                  hasilData.map((item, index) => (
-                    <tr
-                      key={item.id}
-                      className={`border-b border-gray-200 ${
-                        item.ranking === 1 ? "bg-green-50" : ""
-                      }`}
-                    >
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {index + 1}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                        {item.kode_alternatif}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {item.nama_alternatif}
-                      </td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-900 font-mono">
-                        {formatNumber(item.nilai_vektor_s)}
-                      </td>
-                      <td className="px-6 py-4 text-center text-sm text-gray-900 font-mono">
-                        {formatNumber(item.nilai_vektor_v)}
-                      </td>
-                      <td className="px-6 py-4 text-center text-sm">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            item.ranking === 1
-                              ? "bg-green-100 text-green-800"
-                              : item.ranking <= 3
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          #{item.ranking}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+          <div className="p-4">
+            <div className="overflow-x-auto">
+              <Table className="w-full table-auto">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">No</TableHead>
+                    <TableHead>Kode Alternatif</TableHead>
+                    <TableHead>Nama Alternatif</TableHead>
+                    <TableHead className="text-center">
+                      Nilai Vektor S
+                    </TableHead>
+                    <TableHead className="text-center">
+                      Nilai Vektor V
+                    </TableHead>
+                    <TableHead className="text-center">Ranking</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-gray-500"
+                      >
+                        Loading...
+                      </TableCell>
+                    </TableRow>
+                  ) : hasilData.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-gray-500"
+                      >
+                        Belum ada hasil perhitungan. Klik tombol &quot;Hitung
+                        Weighted Product&quot; untuk memulai perhitungan.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    hasilData.map((item, index) => (
+                      <TableRow
+                        key={item.id}
+                        className={item.ranking === 1 ? "bg-green-50" : ""}
+                      >
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell className="font-medium">
+                          {item.kode_alternatif}
+                        </TableCell>
+                        <TableCell>{item.nama_alternatif}</TableCell>
+                        <TableCell className="text-center font-mono">
+                          {formatNumber(item.nilai_vektor_s)}
+                        </TableCell>
+                        <TableCell className="text-center font-mono">
+                          {formatNumber(item.nilai_vektor_v)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              item.ranking === 1
+                                ? "bg-green-100 text-green-800"
+                                : item.ranking <= 3
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            #{item.ranking}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
           {/* Formula Explanation */}
