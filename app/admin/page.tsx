@@ -8,9 +8,7 @@ import {
   Target,
   ClipboardList,
   Calculator,
-  TrendingUp,
   Award,
-  Users,
 } from "lucide-react";
 import {
   Table,

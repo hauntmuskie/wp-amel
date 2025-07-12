@@ -68,7 +68,9 @@ export async function POST() {
     const expectedPenilaianCount = dataAlternatif.length * dataKriteria.length;
     if (dataPenilaian.length < expectedPenilaianCount) {
       return NextResponse.json(
-        { error: `Data penilaian tidak lengkap. Diperlukan ${expectedPenilaianCount} data, tersedia ${dataPenilaian.length}` },
+        {
+          error: `Data penilaian tidak lengkap. Diperlukan ${expectedPenilaianCount} data, tersedia ${dataPenilaian.length}`,
+        },
         { status: 400 }
       );
     }
@@ -137,19 +139,27 @@ export async function POST() {
     alternatifNilai.forEach((alt) => {
       let s = 1;
       console.log(`Calculating S for ${alt.nama}:`, alt.nilai);
-      
+
       kriteriaNormalisasi.forEach((krit) => {
         const nilai = alt.nilai[krit.kode] || 0;
-        console.log(`  ${krit.kode}: nilai=${nilai}, bobot_normal=${krit.bobot_normal}`);
-        
+        console.log(
+          `  ${krit.kode}: nilai=${nilai}, bobot_normal=${krit.bobot_normal}`
+        );
+
         // Avoid division by zero and invalid calculations
-        if (nilai > 0 && !isNaN(krit.bobot_normal) && isFinite(krit.bobot_normal)) {
+        if (
+          nilai > 0 &&
+          !isNaN(krit.bobot_normal) &&
+          isFinite(krit.bobot_normal)
+        ) {
           const power = Math.pow(nilai, krit.bobot_normal);
-          console.log(`    Math.pow(${nilai}, ${krit.bobot_normal}) = ${power}`);
+          console.log(
+            `    Math.pow(${nilai}, ${krit.bobot_normal}) = ${power}`
+          );
           s *= power;
         }
       });
-      
+
       // Ensure S is a valid number
       const finalS = isNaN(s) || !isFinite(s) ? 0 : s;
       vektorS[alt.id] = finalS;
@@ -168,7 +178,9 @@ export async function POST() {
       Object.keys(vektorS).forEach((altId) => {
         const id = parseInt(altId);
         const nilai = vektorS[id] / totalS;
-        console.log(`Vektor V for alt ${id}: ${vektorS[id]} / ${totalS} = ${nilai}`);
+        console.log(
+          `Vektor V for alt ${id}: ${vektorS[id]} / ${totalS} = ${nilai}`
+        );
         vektorV[id] = isNaN(nilai) || !isFinite(nilai) ? 0 : nilai;
       });
     } else {
@@ -199,15 +211,21 @@ export async function POST() {
     // Insert hasil baru
     for (const hasil of ranking) {
       // Validate values before inserting
-      const nilaiS = isNaN(hasil.nilai_vektor_s) || !isFinite(hasil.nilai_vektor_s) ? 0 : hasil.nilai_vektor_s;
-      const nilaiV = isNaN(hasil.nilai_vektor_v) || !isFinite(hasil.nilai_vektor_v) ? 0 : hasil.nilai_vektor_v;
-      
+      const nilaiS =
+        isNaN(hasil.nilai_vektor_s) || !isFinite(hasil.nilai_vektor_s)
+          ? 0
+          : hasil.nilai_vektor_s;
+      const nilaiV =
+        isNaN(hasil.nilai_vektor_v) || !isFinite(hasil.nilai_vektor_v)
+          ? 0
+          : hasil.nilai_vektor_v;
+
       console.log(`Inserting for alternatif ${hasil.alternatif_id}:`, {
         nilaiS: nilaiS.toString(),
         nilaiV: nilaiV.toString(),
-        ranking: hasil.ranking
+        ranking: hasil.ranking,
       });
-      
+
       await db.insert(hasil_perhitungan).values({
         alternatif_id: hasil.alternatif_id,
         nilai_vektor_s: nilaiS.toString(),

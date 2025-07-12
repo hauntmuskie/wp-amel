@@ -148,7 +148,7 @@ export default function DataHasilNilaiPage() {
             ) : (
               <RefreshCw className="h-4 w-4 mr-2" />
             )}
-            {loading ? "Memuat..." : "Refresh Data"}
+            {loading ? "Memuat..." : "Segarkan Data"}
           </Button>
         </div>
       </div>

@@ -182,39 +182,39 @@ export function Sidebar() {
                 </li>
               );
             })}
-
-            {/* Logout with confirmation dialog */}
-            <li>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium"
-                    onClick={() => setOpen(false)}
-                    variant={"default"}
-                  >
-                    <LogOut className="h-5 w-5" />
-                    Keluar
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Konfirmasi Keluar</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Apakah Anda yakin ingin keluar dari aplikasi? Anda perlu
-                      login kembali untuk mengakses sistem.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Batal</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleLogout}>
-                      Ya, Keluar
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </li>
           </ul>
         </nav>
+
+        {/* Logout Button at Bottom */}
+        <div className="p-4 border-t border-gray-200">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium"
+                onClick={() => setOpen(false)}
+                variant={"default"}
+              >
+                <LogOut className="h-5 w-5" />
+                Keluar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Konfirmasi Keluar</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah Anda yakin ingin keluar dari aplikasi? Anda perlu login
+                  kembali untuk mengakses sistem.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={handleLogout}>
+                  Ya, Keluar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </>
   );
