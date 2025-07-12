@@ -1,26 +1,32 @@
 import { FileText, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const laporanItems = [
   {
     title: "Laporan Data Alternatif",
     description: "Cetak laporan data alternatif",
+    href: "/admin/laporan/alternatif",
   },
   {
     title: "Laporan Data Kriteria",
     description: "Cetak laporan data kriteria",
+    href: "/admin/laporan/kriteria",
   },
   {
     title: "Laporan Data Sub Kriteria",
     description: "Cetak laporan data sub kriteria",
+    href: "/admin/laporan/sub-kriteria",
   },
   {
     title: "Laporan Data Penilaian",
     description: "Cetak laporan data penilaian",
+    href: "/admin/laporan/penilaian",
   },
   {
     title: "Laporan Data Hasil Nilai",
     description: "Cetak laporan data hasil nilai",
+    href: "/admin/laporan/hasil-nilai",
   },
 ];
 
@@ -44,10 +50,12 @@ export default function LaporanPage() {
               {item.title}
             </h3>
             <p className="text-gray-600 text-sm mb-4">{item.description}</p>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700">
-              <Printer className="h-4 w-4 mr-2" />
-              Cetak Data
-            </Button>
+            <Link href={item.href}>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                <Printer className="h-4 w-4 mr-2" />
+                Cetak Data
+              </Button>
+            </Link>
           </div>
         ))}
       </div>
