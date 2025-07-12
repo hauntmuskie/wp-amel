@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BarChart3, Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react";
+import {  Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -178,12 +178,7 @@ export default function DataKriteriaPage() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="h-6 w-6 text-gray-600" />
-          <h1 className="text-xl font-semibold text-gray-800">Data Kriteria</h1>
-        </div>
-
+      <div className="flex justify-end mb-6">
         {/* Add Dialog */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
@@ -194,9 +189,8 @@ export default function DataKriteriaPage() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <div className="bg-red-600 text-white px-6 py-4 -mx-6 -mt-6 mb-6 rounded-t-lg">
-                <DialogTitle className="flex items-center gap-2 text-white">
-                  <BarChart3 className="h-5 w-5" />
+              <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
+                <DialogTitle className="text-white text-base font-medium">
                   Tambah Data Kriteria
                 </DialogTitle>
               </div>
@@ -229,7 +223,7 @@ export default function DataKriteriaPage() {
                     className="text-sm font-medium text-gray-700 mb-2 block"
                   >
                     Bobot Kriteria
-                  </Label>
+                  </Label>{" "}
                   <Input
                     id="add-bobot"
                     type="number"
@@ -239,9 +233,14 @@ export default function DataKriteriaPage() {
                     placeholder="Masukkan Nilai Bobot 1-5"
                     className="w-full"
                     value={formData.bobot}
-                    onChange={(e) =>
-                      setFormData({ ...formData, bobot: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Parse and format to remove decimals
+                      const intValue = value
+                        ? Math.round(parseFloat(value)).toString()
+                        : "";
+                      setFormData({ ...formData, bobot: intValue });
+                    }}
                     required
                   />
                 </div>
@@ -316,11 +315,8 @@ export default function DataKriteriaPage() {
       {/* Main Content */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Title Bar */}
-        <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            <span className="font-medium">Tabel Kriteria</span>
-          </div>
+        <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
+          <span className="text-base font-medium">Tabel Kriteria</span>
         </div>
 
         {/* Search */}
@@ -377,7 +373,9 @@ export default function DataKriteriaPage() {
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{item.kode}</TableCell>
                       <TableCell>{item.nama}</TableCell>
-                      <TableCell>{parseFloat(item.bobot).toString()}</TableCell>
+                      <TableCell>
+                        {Math.round(parseFloat(item.bobot))}
+                      </TableCell>
                       <TableCell className="capitalize">{item.jenis}</TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-2 justify-center">
@@ -434,9 +432,8 @@ export default function DataKriteriaPage() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <div className="bg-red-600 text-white px-6 py-4 -mx-6 -mt-6 mb-6 rounded-t-lg">
-              <DialogTitle className="flex items-center gap-2 text-white">
-                <BarChart3 className="h-5 w-5" />
+            <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
+              <DialogTitle className="text-white text-base font-medium">
                 Ubah Data Kriteria
               </DialogTitle>
             </div>
@@ -479,9 +476,14 @@ export default function DataKriteriaPage() {
                   placeholder="Masukkan Nilai Bobot 1-5"
                   className="w-full"
                   value={formData.bobot}
-                  onChange={(e) =>
-                    setFormData({ ...formData, bobot: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Parse and format to remove decimals
+                    const intValue = value
+                      ? Math.round(parseFloat(value)).toString()
+                      : "";
+                    setFormData({ ...formData, bobot: intValue });
+                  }}
                   required
                 />
               </div>

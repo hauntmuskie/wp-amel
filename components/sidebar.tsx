@@ -33,7 +33,7 @@ import { Button } from "./ui/button";
 
 const menuItems = [
   {
-    title: "Beranda",
+    title: "Dashboard",
     href: "/admin",
     icon: Home,
   },
@@ -58,8 +58,8 @@ const menuItems = [
     icon: ClipboardList,
   },
   {
-    title: "Data Hasil Nilai",
-    href: "/admin/data-hasil-nilai",
+    title: "Data Perhitungan",
+    href: "/admin/data-perhitungan",
     icon: TrendingUp,
   },
   {

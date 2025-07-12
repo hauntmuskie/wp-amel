@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Home,
-  BarChart3,
-  Package,
-  Target,
-  ClipboardList,
-  Calculator,
-  Award,
-} from "lucide-react";
+import { Home, Package, Target, ClipboardList, Calculator } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -105,81 +97,86 @@ export default function BerandaPage() {
       <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg text-white p-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold mb-2">
-              Penerapan Metode Weighted Product (WP) Dalam Pemilihan Cat Dinding
-              Terbaik Pada TB Raja Bangunan
+            <h2 className="text-xl font-bold mb-2 text-center">
+              <span>
+                Penerapan Metode Weighted Product (WP) Dalam Pemilihan Cat
+                Dinding Terbaik Pada TB Raja Bangunan
+              </span>
             </h2>
-          </div>
-          <div className="hidden lg:block">
-            <BarChart3 className="h-24 w-24 text-red-200" />
           </div>
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Data Alternatif
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {loading ? "..." : stats.alternatif}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Merek cat dinding</p>
-            </div>
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Package className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Kriteria Utama
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {loading ? "..." : stats.kriteria}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Parameter penilaian</p>
-            </div>
-            <div className="bg-green-100 p-3 rounded-full">
-              <Target className="h-6 w-6 text-green-600" />
+      <div className="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  Data Alternatif
+                </p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {loading ? "..." : stats.alternatif}
+                </p>
+                <p className="text-gray-500 text-xs mt-1">Merek cat dinding</p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-full">
+                <Package className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Sub Kriteria</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {loading ? "..." : stats.subKriteria}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Detail penilaian</p>
-            </div>
-            <div className="bg-purple-100 p-3 rounded-full">
-              <ClipboardList className="h-6 w-6 text-purple-600" />
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  Kriteria Utama
+                </p>
+                <p className="text-3xl font-bold text-green-600">
+                  {loading ? "..." : stats.kriteria}
+                </p>
+                <p className="text-gray-500 text-xs mt-1">
+                  Parameter penilaian
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-full">
+                <Target className="h-6 w-6 text-green-600" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">
-                Data Penilaian
-              </p>
-              <p className="text-3xl font-bold text-gray-900">
-                {loading ? "..." : stats.penilaian}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Matrix evaluasi</p>
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  Sub Kriteria
+                </p>
+                <p className="text-3xl font-bold text-purple-600">
+                  {loading ? "..." : stats.subKriteria}
+                </p>
+                <p className="text-gray-500 text-xs mt-1">Detail penilaian</p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-full">
+                <ClipboardList className="h-6 w-6 text-purple-600" />
+              </div>
             </div>
-            <div className="bg-orange-100 p-3 rounded-full">
-              <Calculator className="h-6 w-6 text-orange-600" />
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  Data Penilaian
+                </p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {loading ? "..." : stats.penilaian}
+                </p>
+                <p className="text-gray-500 text-xs mt-1">Matrix evaluasi</p>
+              </div>
+              <div className="bg-orange-100 p-3 rounded-full">
+                <Calculator className="h-6 w-6 text-orange-600" />
+              </div>
             </div>
           </div>
         </div>
@@ -188,13 +185,10 @@ export default function BerandaPage() {
       {/* Ranking Table */}
       {rankingData.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white p-4 rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <Award className="h-5 w-5" />
-              <h3 className="text-lg font-semibold">
-                Peringkat Hasil Weighted Product
-              </h3>
-            </div>
+          <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
+            <h3 className="text-base font-medium">
+              Peringkat Hasil Weighted Product
+            </h3>
           </div>
           <div className="p-6">
             <Table>

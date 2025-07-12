@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TrendingUp, Calculator, RefreshCw } from "lucide-react";
+import { Calculator, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -12,7 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 interface NormalisasiBobot {
   id: number;
@@ -41,30 +40,14 @@ export default function DataHasilNilaiPage() {
   const [hasilData, setHasilData] = useState<HasilPerhitungan[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     fetchResults();
-    // Add an interval to refresh data periodically
-    const interval = setInterval(fetchResults, 5000); // Refresh every 5 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  // Add event listener for focus to refresh data when user comes back to tab
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchResults();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const fetchResults = async () => {
     try {
-      // Force fresh data by adding timestamp
-      const timestamp = new Date().getTime();
-      const response = await fetch(`/api/weighted-product/results?t=${timestamp}`, {
+      const response = await fetch(`/api/weighted-product/results`, {
         cache: "no-store",
         next: { revalidate: 0 },
       });
@@ -94,7 +77,6 @@ export default function DataHasilNilaiPage() {
         toast.success("Perhitungan Weighted Product berhasil!");
         // Fetch fresh results after calculation
         await fetchResults();
-        router.refresh();
       } else {
         toast.error(
           "Gagal melakukan perhitungan. Pastikan data alternatif, kriteria, dan penilaian sudah lengkap."
@@ -115,14 +97,7 @@ export default function DataHasilNilaiPage() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-6 w-6 text-gray-600" />
-          <h1 className="text-xl font-semibold text-gray-800">
-            Data Hasil Nilai
-          </h1>
-        </div>
-
+      <div className="flex justify-end mb-6">
         <div className="flex gap-2">
           <Button
             onClick={handleCalculate}
@@ -136,31 +111,16 @@ export default function DataHasilNilaiPage() {
             )}
             {calculating ? "Menghitung..." : "Hitung Weighted Product"}
           </Button>
-          
-          <Button
-            onClick={fetchResults}
-            disabled={loading}
-            variant="outline"
-            className="border-blue-600 text-blue-600 hover:bg-blue-50"
-          >
-            {loading ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4 mr-2" />
-            )}
-            {loading ? "Memuat..." : "Segarkan Data"}
-          </Button>
         </div>
       </div>
 
       <div className="space-y-6">
         {/* Perbaikan Bobot Kriteria */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <Calculator className="h-5 w-5" />
-              <span className="font-medium">Perbaikan Bobot Kriteria</span>
-            </div>
+          <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
+            <span className="text-base font-medium">
+              Perbaikan Bobot Kriteria
+            </span>
           </div>
           <div className="p-4">
             <div className="overflow-x-auto">
@@ -184,7 +144,7 @@ export default function DataHasilNilaiPage() {
                       );
                       return (
                         <TableCell key={kode} className="text-center">
-                          {item ? parseFloat(item.bobot_awal).toString() : "-"}
+                          {item ? Math.round(parseFloat(item.bobot_awal)) : "-"}
                         </TableCell>
                       );
                     })}
@@ -224,13 +184,10 @@ export default function DataHasilNilaiPage() {
 
         {/* Perangkingan */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              <span className="font-medium">
-                Perangkingan Hasil Weighted Product
-              </span>
-            </div>
+          <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
+            <span className="text-base font-medium">
+              Perangkingan Hasil Weighted Product
+            </span>
           </div>
           <div className="p-4">
             <div className="overflow-x-auto">

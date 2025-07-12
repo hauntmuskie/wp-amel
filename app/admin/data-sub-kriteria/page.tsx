@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -141,7 +141,7 @@ export default function DataSubKriteriaPage() {
     setFormData({
       kriteria_id: item.kriteria_id.toString(),
       nama: item.nama,
-      bobot: item.bobot,
+      bobot: Math.round(parseFloat(item.bobot)).toString(),
       keterangan: item.keterangan || "",
     });
     setIsEditOpen(true);
@@ -207,14 +207,7 @@ export default function DataSubKriteriaPage() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Users className="h-6 w-6 text-gray-600" />
-          <h1 className="text-xl font-semibold text-gray-800">
-            Data Sub Kriteria
-          </h1>
-        </div>
-
+      <div className="flex justify-end mb-6">
         {/* Add Dialog */}
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
@@ -225,9 +218,8 @@ export default function DataSubKriteriaPage() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <div className="bg-red-600 text-white px-6 py-4 -mx-6 -mt-6 mb-6 rounded-t-lg">
-                <DialogTitle className="flex items-center gap-2 text-white">
-                  <Users className="h-5 w-5" />
+              <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
+                <DialogTitle className="text-white text-base font-medium">
                   Tambah Data Sub Kriteria
                 </DialogTitle>
               </div>
@@ -322,11 +314,11 @@ export default function DataSubKriteriaPage() {
                       <SelectValue placeholder="Pilih Nilai Bobot" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5 - Sangat Baik</SelectItem>
-                      <SelectItem value="4">4 - Baik</SelectItem>
-                      <SelectItem value="3">3 - Cukup</SelectItem>
-                      <SelectItem value="2">2 - Kurang</SelectItem>
-                      <SelectItem value="1">1 - Sangat Kurang</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="4">4</SelectItem>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="2">2</SelectItem>
+                      <SelectItem value="1">1</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -387,11 +379,8 @@ export default function DataSubKriteriaPage() {
       {/* Main Content */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {/* Title Bar */}
-        <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            <span className="font-medium">Tabel Sub Kriteria</span>
-          </div>
+        <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
+          <span className="text-base font-medium">Tabel Sub Kriteria</span>
         </div>
 
         {/* Search */}
@@ -449,7 +438,9 @@ export default function DataSubKriteriaPage() {
                       <TableCell>{item.kode_kriteria}</TableCell>
                       <TableCell>{item.nama_kriteria}</TableCell>
                       <TableCell>{item.nama}</TableCell>
-                      <TableCell>{parseFloat(item.bobot).toString()}</TableCell>
+                      <TableCell>
+                        {Math.round(parseFloat(item.bobot))}
+                      </TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-2 justify-center">
                           <Button
@@ -505,9 +496,8 @@ export default function DataSubKriteriaPage() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <div className="bg-red-600 text-white px-6 py-4 -mx-6 -mt-6 mb-6 rounded-t-lg">
-              <DialogTitle className="flex items-center gap-2 text-white">
-                <Users className="h-5 w-5" />
+            <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
+              <DialogTitle className="text-white text-base font-medium">
                 Ubah Data Sub Kriteria
               </DialogTitle>
             </div>
@@ -602,11 +592,11 @@ export default function DataSubKriteriaPage() {
                     <SelectValue placeholder="Pilih Nilai Bobot" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">5 - Sangat Baik</SelectItem>
-                    <SelectItem value="4">4 - Baik</SelectItem>
-                    <SelectItem value="3">3 - Cukup</SelectItem>
-                    <SelectItem value="2">2 - Kurang</SelectItem>
-                    <SelectItem value="1">1 - Sangat Kurang</SelectItem>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="4">4</SelectItem>
+                    <SelectItem value="3">3</SelectItem>
+                    <SelectItem value="2">2</SelectItem>
+                    <SelectItem value="1">1</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
