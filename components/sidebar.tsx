@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   Database,
@@ -16,6 +16,17 @@ import {
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import RajaBangunanLogo from "@/public/image.png";
 import { Button } from "./ui/button";
@@ -56,16 +67,16 @@ const menuItems = [
     href: "/admin/laporan",
     icon: FileText,
   },
-  {
-    title: "Keluar",
-    href: "/login",
-    icon: LogOut,
-  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+
+  const handleLogout = () => {
+    router.push("/login");
+  };
 
   // Close sidebar when navigating (optional UX improvement)
   // useEffect(() => { setOpen(false); }, [pathname]);
@@ -163,7 +174,7 @@ export function Sidebar() {
                         ? "bg-yellow-200 text-gray-900"
                         : "text-gray-700 hover:bg-gray-100"
                     )}
-                    onClick={() => setOpen(false)} // Close sidebar on link click (mobile)
+                    onClick={() => setOpen(false)}
                   >
                     <item.icon className="h-5 w-5" />
                     {item.title}
@@ -171,6 +182,37 @@ export function Sidebar() {
                 </li>
               );
             })}
+
+            {/* Logout with confirmation dialog */}
+            <li>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium"
+                    onClick={() => setOpen(false)}
+                    variant={"default"}
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Keluar
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Konfirmasi Keluar</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Apakah Anda yakin ingin keluar dari aplikasi? Anda perlu
+                      login kembali untuk mengakses sistem.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Batal</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleLogout}>
+                      Ya, Keluar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </li>
           </ul>
         </nav>
       </div>

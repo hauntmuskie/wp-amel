@@ -28,6 +28,16 @@ interface DashboardStats {
   penilaian: number;
 }
 
+interface HasilPerhitungan {
+  id: number;
+  alternatif_id: number;
+  kode_alternatif: string;
+  nama_alternatif: string;
+  nilai_vektor_s: string;
+  nilai_vektor_v: string;
+  ranking: number;
+}
+
 export default function BerandaPage() {
   const [stats, setStats] = useState<DashboardStats>({
     alternatif: 0,
@@ -35,38 +45,53 @@ export default function BerandaPage() {
     subKriteria: 0,
     penilaian: 0,
   });
+  const [rankingData, setRankingData] = useState<HasilPerhitungan[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
+    fetchRankingData();
   }, []);
 
   const fetchStats = async () => {
     try {
-      const [altRes, kritRes, subKritRes, penRes] = await Promise.all([
+      const [altRes, kritRes, subKritRes] = await Promise.all([
         fetch("/api/alternatif"),
         fetch("/api/kriteria"),
         fetch("/api/sub-kriteria"),
-        fetch("/api/penilaian"),
       ]);
 
-      const [altData, kritData, subKritData, penData] = await Promise.all([
+      const [altData, kritData, subKritData] = await Promise.all([
         altRes.json(),
         kritRes.json(),
         subKritRes.json(),
-        penRes.json(),
       ]);
+
+      // The data penilaian should show number of alternatives that have been evaluated
+      const penilaianCount = altData.length;
 
       setStats({
         alternatif: altData.length || 0,
         kriteria: kritData.length || 0,
         subKriteria: subKritData.length || 0,
-        penilaian: penData.length || 0,
+        penilaian: penilaianCount || 0,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRankingData = async () => {
+    try {
+      const response = await fetch("/api/weighted-product/results");
+      if (response.ok) {
+        const data = await response.json();
+        setRankingData(data.hasil_perhitungan || []);
+      }
+    } catch (error) {
+      console.error("Error fetching ranking data:", error);
     }
   };
 
@@ -83,14 +108,9 @@ export default function BerandaPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold mb-2">
-              Sistem Pendukung Keputusan
+              Penerapan Metode Weighted Product (WP) Dalam Pemilihan Cat Dinding
+              Terbaik Pada TB Raja Bangunan
             </h2>
-            <p className="text-red-100 text-lg mb-4">
-              Metode Weighted Product untuk Pemilihan Cat Dinding Terbaik
-            </p>
-            <p className="text-red-200">
-              TB Raja Bangunan - Implementasi SPK Berbasis Web
-            </p>
           </div>
           <div className="hidden lg:block">
             <BarChart3 className="h-24 w-24 text-red-200" />
@@ -167,148 +187,65 @@ export default function BerandaPage() {
         </div>
       </div>
 
-      {/* System Overview */}
-      <div className=" bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            <span className="font-medium">Sistem Overview</span>
-          </div>
-        </div>
-        <div className="p-6">
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                Metode Weighted Product (WP)
+      {/* Ranking Table */}
+      {rankingData.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-red-600 text-white p-4 rounded-t-lg">
+            <div className="flex items-center gap-2">
+              <Award className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">
+                Peringkat Hasil Weighted Product
               </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
-                Sistem ini mengimplementasikan metode Weighted Product untuk
-                membantu pemilihan cat dinding terbaik berdasarkan 5 kriteria
-                utama: Kualitas Pigmen, Harga, Ketahanan, Daya Sebar, dan
-                Variasi Warna.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-gray-800">
-                    Benefit Criteria
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  C1 (Kualitas), C3 (Ketahanan), C4 (Daya Sebar), C5 (Variasi)
-                </p>
-              </div>
-
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="h-4 w-4 text-red-600" />
-                  <span className="font-medium text-gray-800">
-                    Cost Criteria
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600">
-                  C2 (Harga) - Semakin rendah semakin baik
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium text-gray-800 mb-2">
-                Formula Perhitungan:
-              </h4>
-              <div className="space-y-1 text-sm text-gray-600">
-                <p>
-                  <strong>Vector S:</strong> S(Ai) = ∏(Xij^Wj) untuk j=1 sampai
-                  n
-                </p>
-                <p>
-                  <strong>Vector V:</strong> V(Ai) = S(Ai) / ∑S(Ai)
-                </p>
-                <p>
-                  <strong>Ranking:</strong> Alternatif dengan nilai V tertinggi
-                  = terbaik
-                </p>
-              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Assessment Matrix Preview */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="bg-red-600 text-white px-6 py-4 rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            <span className="font-medium">Assessment Matrix Preview</span>
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="overflow-x-auto">
-            <Table className="w-full table-auto">
+          <div className="p-6">
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-left">Alternatif</TableHead>
-                  <TableHead className="text-center">C1 (Pigmen)</TableHead>
-                  <TableHead className="text-center">C2 (Harga)</TableHead>
-                  <TableHead className="text-center">C3 (Ketahanan)</TableHead>
-                  <TableHead className="text-center">C4 (Daya Sebar)</TableHead>
-                  <TableHead className="text-center">C5 (Variasi)</TableHead>
+                  <TableHead className="w-16">No</TableHead>
+                  <TableHead>Kode Alternatif</TableHead>
+                  <TableHead>Nama Alternatif</TableHead>
+                  <TableHead className="text-center">Nilai Vektor S</TableHead>
+                  <TableHead className="text-center">Nilai Vektor V</TableHead>
+                  <TableHead className="text-center">Peringkat</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>A1 - Nippon Paint Vinilex</TableCell>
-                  <TableCell className="text-center">5</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>A2 - Aquaproof</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                  <TableCell className="text-center">2</TableCell>
-                  <TableCell className="text-center">5</TableCell>
-                  <TableCell className="text-center">1</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>A3 - Dulux Catylac</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                  <TableCell className="text-center">2</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                  <TableCell className="text-center">5</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>A4 - Mowilex Emulsion</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                  <TableCell className="text-center">5</TableCell>
-                  <TableCell className="text-center">2</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>A5 - No Drop</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                  <TableCell className="text-center">4</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                  <TableCell className="text-center">1</TableCell>
-                  <TableCell className="text-center">3</TableCell>
-                </TableRow>
+                {rankingData
+                  .sort((a, b) => a.ranking - b.ranking)
+                  .map((item, index) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell>{item.kode_alternatif}</TableCell>
+                      <TableCell>{item.nama_alternatif}</TableCell>
+                      <TableCell className="text-center">
+                        {parseFloat(item.nilai_vektor_s).toFixed(5)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {parseFloat(item.nilai_vektor_v).toFixed(5)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.ranking === 1
+                              ? "bg-green-100 text-green-800"
+                              : item.ranking === 2
+                              ? "bg-blue-100 text-blue-800"
+                              : item.ranking === 3
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {item.ranking}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </div>
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-500">
-              Matrix penilaian berdasarkan penelitian TB Raja Bangunan
-            </p>
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

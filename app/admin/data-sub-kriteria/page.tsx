@@ -38,6 +38,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface SubKriteria {
   id: number;
@@ -63,6 +65,7 @@ export default function DataSubKriteriaPage() {
   const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   // Form states
   const [formData, setFormData] = useState({
@@ -79,7 +82,10 @@ export default function DataSubKriteriaPage() {
 
   const fetchSubKriteria = async () => {
     try {
-      const response = await fetch("/api/sub-kriteria");
+      const response = await fetch("/api/sub-kriteria", {
+        cache: "no-store",
+        next: { revalidate: 0 },
+      });
       if (response.ok) {
         const data = await response.json();
         setSubKriteriaData(data);
@@ -119,9 +125,14 @@ export default function DataSubKriteriaPage() {
         await fetchSubKriteria();
         setIsAddOpen(false);
         setFormData({ kriteria_id: "", nama: "", bobot: "", keterangan: "" });
+        toast.success("Data sub kriteria berhasil ditambahkan!");
+        router.refresh();
+      } else {
+        toast.error("Gagal menambahkan data sub kriteria!");
       }
     } catch (error) {
       console.error("Error adding sub kriteria:", error);
+      toast.error("Terjadi kesalahan saat menambahkan data!");
     }
   };
 
@@ -156,9 +167,14 @@ export default function DataSubKriteriaPage() {
         setIsEditOpen(false);
         setEditingItem(null);
         setFormData({ kriteria_id: "", nama: "", bobot: "", keterangan: "" });
+        toast.success("Data sub kriteria berhasil diperbarui!");
+        router.refresh();
+      } else {
+        toast.error("Gagal memperbarui data sub kriteria!");
       }
     } catch (error) {
       console.error("Error updating sub kriteria:", error);
+      toast.error("Terjadi kesalahan saat memperbarui data!");
     }
   };
 
@@ -170,9 +186,14 @@ export default function DataSubKriteriaPage() {
 
       if (response.ok) {
         await fetchSubKriteria();
+        toast.success("Data sub kriteria berhasil dihapus!");
+        router.refresh();
+      } else {
+        toast.error("Gagal menghapus data sub kriteria!");
       }
     } catch (error) {
       console.error("Error deleting sub kriteria:", error);
+      toast.error("Terjadi kesalahan saat menghapus data!");
     }
   };
 
@@ -428,7 +449,7 @@ export default function DataSubKriteriaPage() {
                       <TableCell>{item.kode_kriteria}</TableCell>
                       <TableCell>{item.nama_kriteria}</TableCell>
                       <TableCell>{item.nama}</TableCell>
-                      <TableCell>{item.bobot}</TableCell>
+                      <TableCell>{parseFloat(item.bobot).toString()}</TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-2 justify-center">
                           <Button

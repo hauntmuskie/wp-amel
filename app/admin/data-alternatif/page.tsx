@@ -38,6 +38,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Alternatif {
   id: number;
@@ -53,6 +55,7 @@ export default function DataAlternatifPage() {
   const [alternatifData, setAlternatifData] = useState<Alternatif[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   // Form states
   const [formData, setFormData] = useState({
@@ -67,7 +70,10 @@ export default function DataAlternatifPage() {
 
   const fetchAlternatif = async () => {
     try {
-      const response = await fetch("/api/alternatif");
+      const response = await fetch("/api/alternatif", {
+        cache: "no-store",
+        next: { revalidate: 0 },
+      });
       if (response.ok) {
         const data = await response.json();
         setAlternatifData(data);
@@ -92,9 +98,14 @@ export default function DataAlternatifPage() {
         await fetchAlternatif();
         setIsAddOpen(false);
         setFormData({ kode: "", nama: "", jenis: "" });
+        toast.success("Data alternatif berhasil ditambahkan!");
+        router.refresh();
+      } else {
+        toast.error("Gagal menambahkan data alternatif!");
       }
     } catch (error) {
       console.error("Error adding alternatif:", error);
+      toast.error("Terjadi kesalahan saat menambahkan data!");
     }
   };
 
@@ -124,9 +135,14 @@ export default function DataAlternatifPage() {
         setIsEditOpen(false);
         setEditingItem(null);
         setFormData({ kode: "", nama: "", jenis: "" });
+        toast.success("Data alternatif berhasil diperbarui!");
+        router.refresh();
+      } else {
+        toast.error("Gagal memperbarui data alternatif!");
       }
     } catch (error) {
       console.error("Error updating alternatif:", error);
+      toast.error("Terjadi kesalahan saat memperbarui data!");
     }
   };
 
@@ -138,9 +154,14 @@ export default function DataAlternatifPage() {
 
       if (response.ok) {
         await fetchAlternatif();
+        toast.success("Data alternatif berhasil dihapus!");
+        router.refresh();
+      } else {
+        toast.error("Gagal menghapus data alternatif!");
       }
     } catch (error) {
       console.error("Error deleting alternatif:", error);
+      toast.error("Terjadi kesalahan saat menghapus data!");
     }
   };
 

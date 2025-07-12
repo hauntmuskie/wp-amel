@@ -45,6 +45,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Penilaian {
   id: number;
@@ -92,6 +94,7 @@ export default function DataPenilaianPage() {
   const [subKriteriaData, setSubKriteriaData] = useState<SubKriteria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   // Form states
   const [formData, setFormData] = useState({
@@ -112,7 +115,10 @@ export default function DataPenilaianPage() {
 
   const fetchPenilaian = async () => {
     try {
-      const response = await fetch("/api/penilaian");
+      const response = await fetch("/api/penilaian", {
+        cache: "no-store",
+        next: { revalidate: 0 },
+      });
       if (response.ok) {
         const data = await response.json();
         setPenilaianData(data);
@@ -223,8 +229,11 @@ export default function DataPenilaianPage() {
         c4_sub_kriteria_id: "",
         c5_sub_kriteria_id: "",
       });
+      toast.success("Data penilaian berhasil ditambahkan!");
+      router.refresh();
     } catch (error) {
       console.error("Error adding penilaian:", error);
+      toast.error("Gagal menambahkan data penilaian!");
     }
   };
 
@@ -328,8 +337,11 @@ export default function DataPenilaianPage() {
         c4_sub_kriteria_id: "",
         c5_sub_kriteria_id: "",
       });
+      toast.success("Data penilaian berhasil diperbarui!");
+      router.refresh();
     } catch (error) {
       console.error("Error updating penilaian:", error);
+      toast.error("Gagal memperbarui data penilaian!");
     }
   };
 
@@ -342,8 +354,11 @@ export default function DataPenilaianPage() {
         await fetch(`/api/penilaian?id=${pen.id}`, { method: "DELETE" });
       }
       await fetchPenilaian();
+      toast.success("Data penilaian berhasil dihapus!");
+      router.refresh();
     } catch (error) {
       console.error("Error deleting penilaian:", error);
+      toast.error("Gagal menghapus data penilaian!");
     }
   };
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/database";
 import { sub_kriteria, kriteria } from "@/database/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   try {
@@ -39,6 +40,11 @@ export async function POST(request: NextRequest) {
       keterangan,
     });
 
+    // Revalidate related paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-sub-kriteria");
+    revalidatePath("/admin/data-penilaian");
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json(
@@ -57,6 +63,11 @@ export async function PUT(request: NextRequest) {
       .update(sub_kriteria)
       .set({ kriteria_id, nama, bobot, keterangan })
       .where(eq(sub_kriteria.id, id));
+
+    // Revalidate related paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-sub-kriteria");
+    revalidatePath("/admin/data-penilaian");
 
     return NextResponse.json({ success: true });
   } catch {
@@ -77,6 +88,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     await db.delete(sub_kriteria).where(eq(sub_kriteria.id, parseInt(id)));
+
+    // Revalidate related paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-sub-kriteria");
+    revalidatePath("/admin/data-penilaian");
 
     return NextResponse.json({ success: true });
   } catch {

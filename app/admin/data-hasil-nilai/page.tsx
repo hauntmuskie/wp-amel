@@ -11,6 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface NormalisasiBobot {
   id: number;
@@ -39,14 +41,33 @@ export default function DataHasilNilaiPage() {
   const [hasilData, setHasilData] = useState<HasilPerhitungan[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     fetchResults();
+    // Add an interval to refresh data periodically
+    const interval = setInterval(fetchResults, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  // Add event listener for focus to refresh data when user comes back to tab
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchResults();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const fetchResults = async () => {
     try {
-      const response = await fetch("/api/weighted-product/results");
+      // Force fresh data by adding timestamp
+      const timestamp = new Date().getTime();
+      const response = await fetch(`/api/weighted-product/results?t=${timestamp}`, {
+        cache: "no-store",
+        next: { revalidate: 0 },
+      });
       if (response.ok) {
         const data = await response.json();
         setNormalisasiData(data.normalisasi_bobot || []);
@@ -70,14 +91,18 @@ export default function DataHasilNilaiPage() {
         const data = await response.json();
         setNormalisasiData(data.normalisasi_bobot || []);
         setHasilData(data.hasil_perhitungan || []);
+        toast.success("Perhitungan Weighted Product berhasil!");
+        // Fetch fresh results after calculation
+        await fetchResults();
+        router.refresh();
       } else {
-        alert(
+        toast.error(
           "Gagal melakukan perhitungan. Pastikan data alternatif, kriteria, dan penilaian sudah lengkap."
         );
       }
     } catch (error) {
       console.error("Error calculating:", error);
-      alert("Terjadi error saat melakukan perhitungan.");
+      toast.error("Terjadi error saat melakukan perhitungan.");
     } finally {
       setCalculating(false);
     }
@@ -98,18 +123,34 @@ export default function DataHasilNilaiPage() {
           </h1>
         </div>
 
-        <Button
-          onClick={handleCalculate}
-          disabled={calculating}
-          className="bg-blue-600 hover:bg-blue-700"
-        >
-          {calculating ? (
-            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Calculator className="h-4 w-4 mr-2" />
-          )}
-          {calculating ? "Menghitung..." : "Hitung Weighted Product"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleCalculate}
+            disabled={calculating}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {calculating ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Calculator className="h-4 w-4 mr-2" />
+            )}
+            {calculating ? "Menghitung..." : "Hitung Weighted Product"}
+          </Button>
+          
+          <Button
+            onClick={fetchResults}
+            disabled={loading}
+            variant="outline"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50"
+          >
+            {loading ? (
+              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            {loading ? "Memuat..." : "Refresh Data"}
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -143,7 +184,7 @@ export default function DataHasilNilaiPage() {
                       );
                       return (
                         <TableCell key={kode} className="text-center">
-                          {item ? item.bobot_awal : "-"}
+                          {item ? parseFloat(item.bobot_awal).toString() : "-"}
                         </TableCell>
                       );
                     })}
@@ -255,7 +296,7 @@ export default function DataHasilNilaiPage() {
                                 : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            #{item.ranking}
+                            {item.ranking}
                           </span>
                         </TableCell>
                       </TableRow>

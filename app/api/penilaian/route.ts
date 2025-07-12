@@ -7,6 +7,7 @@ import {
   sub_kriteria,
 } from "@/database/schema";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function GET() {
   try {
@@ -49,6 +50,11 @@ export async function POST(request: NextRequest) {
       nilai,
     });
 
+    // Revalidate related paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-penilaian");
+    revalidatePath("/admin/data-hasil-nilai");
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json(
@@ -67,6 +73,11 @@ export async function PUT(request: NextRequest) {
       .update(penilaian)
       .set({ alternatif_id, kriteria_id, sub_kriteria_id, nilai })
       .where(eq(penilaian.id, id));
+
+    // Revalidate related paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-penilaian");
+    revalidatePath("/admin/data-hasil-nilai");
 
     return NextResponse.json({ success: true });
   } catch {
@@ -87,6 +98,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     await db.delete(penilaian).where(eq(penilaian.id, parseInt(id)));
+
+    // Revalidate related paths
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-penilaian");
+    revalidatePath("/admin/data-hasil-nilai");
 
     return NextResponse.json({ success: true });
   } catch {

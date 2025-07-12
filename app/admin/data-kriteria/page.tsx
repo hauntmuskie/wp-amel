@@ -38,6 +38,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Kriteria {
   id: number;
@@ -54,6 +56,7 @@ export default function DataKriteriaPage() {
   const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   // Form states
   const [formData, setFormData] = useState({
@@ -69,7 +72,10 @@ export default function DataKriteriaPage() {
 
   const fetchKriteria = async () => {
     try {
-      const response = await fetch("/api/kriteria");
+      const response = await fetch("/api/kriteria", {
+        cache: "no-store",
+        next: { revalidate: 0 },
+      });
       if (response.ok) {
         const data = await response.json();
         setKriteriaData(data);
@@ -94,9 +100,14 @@ export default function DataKriteriaPage() {
         await fetchKriteria();
         setIsAddOpen(false);
         setFormData({ kode: "", nama: "", bobot: "", jenis: "" });
+        toast.success("Data kriteria berhasil ditambahkan!");
+        router.refresh();
+      } else {
+        toast.error("Gagal menambahkan data kriteria!");
       }
     } catch (error) {
       console.error("Error adding kriteria:", error);
+      toast.error("Terjadi kesalahan saat menambahkan data!");
     }
   };
 
@@ -127,9 +138,14 @@ export default function DataKriteriaPage() {
         setIsEditOpen(false);
         setEditingItem(null);
         setFormData({ kode: "", nama: "", bobot: "", jenis: "" });
+        toast.success("Data kriteria berhasil diperbarui!");
+        router.refresh();
+      } else {
+        toast.error("Gagal memperbarui data kriteria!");
       }
     } catch (error) {
       console.error("Error updating kriteria:", error);
+      toast.error("Terjadi kesalahan saat memperbarui data!");
     }
   };
 
@@ -141,9 +157,14 @@ export default function DataKriteriaPage() {
 
       if (response.ok) {
         await fetchKriteria();
+        toast.success("Data kriteria berhasil dihapus!");
+        router.refresh();
+      } else {
+        toast.error("Gagal menghapus data kriteria!");
       }
     } catch (error) {
       console.error("Error deleting kriteria:", error);
+      toast.error("Terjadi kesalahan saat menghapus data!");
     }
   };
 
@@ -356,7 +377,7 @@ export default function DataKriteriaPage() {
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{item.kode}</TableCell>
                       <TableCell>{item.nama}</TableCell>
-                      <TableCell>{item.bobot}</TableCell>
+                      <TableCell>{parseFloat(item.bobot).toString()}</TableCell>
                       <TableCell className="capitalize">{item.jenis}</TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-2 justify-center">
