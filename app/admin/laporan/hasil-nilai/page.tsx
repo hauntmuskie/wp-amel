@@ -52,25 +52,25 @@ export default function HasilNilaiReportPage() {
   return (
     <ReportLayout title="LAPORAN DATA HASIL NILAI">
       <div className="overflow-x-auto">
-        <Table className="border border-gray-300 report-table">
+        <Table>
           <TableHeader>
-            <TableRow className="bg-red-600">
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+            <TableRow>
+              <TableHead className="border border-black text-center">
                 Ranking
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Kode Alternatif
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Nama Alternatif
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Jenis
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Nilai Vektor S
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Nilai Vektor V
               </TableHead>
             </TableRow>
@@ -78,22 +78,22 @@ export default function HasilNilaiReportPage() {
           <TableBody>
             {data.map((item) => (
               <TableRow key={item.id} className="hover:bg-transparent">
-                <TableCell className="border border-gray-300 text-center font-bold">
+                <TableCell className="border border-black text-center font-bold">
                   {item.ranking}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {item.alternatif_kode}
                 </TableCell>
-                <TableCell className="border border-gray-300">
+                <TableCell className="border border-black text-center">
                   {item.alternatif_nama}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {item.alternatif_jenis}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {parseFloat(item.nilai_vektor_s).toFixed(6)}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {parseFloat(item.nilai_vektor_v).toFixed(6)}
                 </TableCell>
               </TableRow>

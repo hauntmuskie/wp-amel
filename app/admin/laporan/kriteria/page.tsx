@@ -50,22 +50,22 @@ export default function KriteriaReportPage() {
   return (
     <ReportLayout title="LAPORAN DATA KRITERIA">
       <div className="overflow-x-auto">
-        <Table className="border border-gray-300 report-table">
+        <Table>
           <TableHeader>
-            <TableRow className="bg-red-600">
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+            <TableRow>
+              <TableHead className="border border-black text-center">
                 No
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Kode Kriteria
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Nama Kriteria
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Bobot
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Jenis
               </TableHead>
             </TableRow>
@@ -73,19 +73,19 @@ export default function KriteriaReportPage() {
           <TableBody>
             {data.map((item, index) => (
               <TableRow key={item.id} className="hover:bg-transparent">
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {index + 1}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {item.kode}
                 </TableCell>
-                <TableCell className="border border-gray-300">
+                <TableCell className="border border-black text-center">
                   {item.nama}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {Math.round(parseFloat(item.bobot))}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {item.jenis}
                 </TableCell>
               </TableRow>

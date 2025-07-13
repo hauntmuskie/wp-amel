@@ -57,7 +57,6 @@ export default function DataAlternatifPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  // Form states
   const [formData, setFormData] = useState({
     kode: "",
     nama: "",

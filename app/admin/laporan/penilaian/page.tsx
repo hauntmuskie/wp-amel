@@ -53,25 +53,25 @@ export default function PenilaianReportPage() {
   return (
     <ReportLayout title="LAPORAN DATA PENILAIAN">
       <div className="overflow-x-auto">
-        <Table className="border border-gray-300 report-table">
+        <Table>
           <TableHeader>
-            <TableRow className="bg-red-600">
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+            <TableRow>
+              <TableHead className="border border-black text-center">
                 No
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Alternatif
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Kriteria
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Sub Kriteria
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Bobot
               </TableHead>
-              <TableHead className="text-white font-bold border border-gray-300 text-center">
+              <TableHead className="border border-black text-center">
                 Nilai
               </TableHead>
             </TableRow>
@@ -79,22 +79,22 @@ export default function PenilaianReportPage() {
           <TableBody>
             {data.map((item, index) => (
               <TableRow key={item.id} className="hover:bg-transparent">
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {index + 1}
                 </TableCell>
-                <TableCell className="border border-gray-300">
+                <TableCell className="border border-black text-center">
                   {item.alternatif_kode} - {item.alternatif_nama}
                 </TableCell>
-                <TableCell className="border border-gray-300">
+                <TableCell className="border border-black text-center">
                   {item.kriteria_kode} - {item.kriteria_nama}
                 </TableCell>
-                <TableCell className="border border-gray-300">
+                <TableCell className="border border-black text-center">
                   {item.sub_kriteria_nama}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {Math.round(parseFloat(item.sub_kriteria_bobot))}
                 </TableCell>
-                <TableCell className="border border-gray-300 text-center">
+                <TableCell className="border border-black text-center">
                   {Math.round(parseFloat(item.nilai))}
                 </TableCell>
               </TableRow>
