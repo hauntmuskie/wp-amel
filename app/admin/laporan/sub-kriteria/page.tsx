@@ -66,9 +66,6 @@ export default function SubKriteriaReportPage() {
               <TableHead className="border border-black text-center">
                 Bobot
               </TableHead>
-              <TableHead className="border border-gray-300 text-center">
-                Keterangan
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -85,9 +82,6 @@ export default function SubKriteriaReportPage() {
                 </TableCell>
                 <TableCell className="border border-black text-center">
                   {Math.round(parseFloat(item.bobot))}
-                </TableCell>
-                <TableCell className="border border-black text-center">
-                  {item.keterangan || "-"}
                 </TableCell>
               </TableRow>
             ))}

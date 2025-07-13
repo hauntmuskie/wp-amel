@@ -21,8 +21,8 @@ export function ReportLayout({
 
   return (
     <div className="min-h-screen bg-white relative">
-      {/* Floating Print Button */}
-      <div className="fixed bottom-4 right-4 z-50">
+      {/* Top Right Print Button */}
+      <div className="fixed top-6 right-8 z-50">
         <PrintButton
           contentRef={printRef}
           documentTitle={documentTitle || title}
@@ -49,7 +49,7 @@ export function ReportLayout({
             >
               <h1 className="text-2xl font-bold mb-2">TB RAJA BANGUNAN</h1>
               <p className="text-sm text-gray-600 mb-1">
-                Jl. Bangka IX C No.92, RT.3/RW.5, Pela Mampang, Kec.
+                Jl. Bangka IX C No.92, RT.12/RW.5, Pela Mampang, Kec.
               </p>
               <p className="text-sm text-gray-600">
                 Mampang Prapatan, Kota Jakarta Selatan, DKI Jakarta 12520
@@ -85,7 +85,7 @@ export function ReportLayout({
                 })}
               </p>
               <p className="mb-16">Pemilik Toko</p>
-              <p className="inline-block min-w-[200px] pb-1">Lukmanuul Hakim</p>
+              <p className="inline-block min-w-[200px] pb-1">Lukmanul Hakim</p>
             </div>
           </div>
         </div>

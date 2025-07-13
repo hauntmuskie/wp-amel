@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/database";
-import { penilaian, alternatif, kriteria, sub_kriteria } from "@/database/schema";
+import {
+  penilaian,
+  alternatif,
+  kriteria,
+  sub_kriteria,
+} from "@/database/schema";
 import { eq } from "drizzle-orm";
 
 export async function GET() {
@@ -17,11 +22,11 @@ export async function GET() {
         sub_kriteria_bobot: sub_kriteria.bobot,
       })
       .from(penilaian)
-      .leftJoin(alternatif, eq(penilaian.alternatif_id, alternatif.id))
-      .leftJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id))
-      .leftJoin(sub_kriteria, eq(penilaian.sub_kriteria_id, sub_kriteria.id))
+      .innerJoin(alternatif, eq(penilaian.alternatif_id, alternatif.id))
+      .innerJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id))
+      .innerJoin(sub_kriteria, eq(penilaian.sub_kriteria_id, sub_kriteria.id))
       .orderBy(alternatif.kode, kriteria.kode);
-    
+
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching penilaian report:", error);

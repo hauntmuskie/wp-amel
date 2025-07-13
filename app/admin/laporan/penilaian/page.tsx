@@ -42,6 +42,33 @@ export default function PenilaianReportPage() {
     fetchData();
   }, []);
 
+  const groupedPenilaian = data
+    .filter((item) => item.alternatif_kode && item.alternatif_nama) // Filter out records with missing alternatif data
+    .reduce(
+      (acc, curr) => {
+        const key = `${curr.alternatif_kode}-${curr.alternatif_nama}`;
+        if (!acc[key]) {
+          acc[key] = {
+            kode_alternatif: curr.alternatif_kode,
+            nama_alternatif: curr.alternatif_nama,
+            kriteria: {},
+          };
+        }
+        acc[key].kriteria[curr.kriteria_kode] = Number(curr.nilai);
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          kode_alternatif: string;
+          nama_alternatif: string;
+          kriteria: Record<string, number>;
+        }
+      >
+    );
+
+  const groupedData = Object.values(groupedPenilaian);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -60,42 +87,57 @@ export default function PenilaianReportPage() {
                 No
               </TableHead>
               <TableHead className="border border-black text-center">
-                Alternatif
+                Kode Alternatif
               </TableHead>
               <TableHead className="border border-black text-center">
-                Kriteria
+                Nama Alternatif
               </TableHead>
               <TableHead className="border border-black text-center">
-                Sub Kriteria
+                C1
               </TableHead>
               <TableHead className="border border-black text-center">
-                Bobot
+                C2
               </TableHead>
               <TableHead className="border border-black text-center">
-                Nilai
+                C3
+              </TableHead>
+              <TableHead className="border border-black text-center">
+                C4
+              </TableHead>
+              <TableHead className="border border-black text-center">
+                C5
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((item, index) => (
-              <TableRow key={item.id} className="hover:bg-transparent">
+            {groupedData.map((item, index) => (
+              <TableRow
+                key={`${item.kode_alternatif}-${item.nama_alternatif}`}
+                className="hover:bg-transparent"
+              >
                 <TableCell className="border border-black text-center">
                   {index + 1}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {item.alternatif_kode} - {item.alternatif_nama}
+                  {item.kode_alternatif}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {item.kriteria_kode} - {item.kriteria_nama}
+                  {item.nama_alternatif}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {item.sub_kriteria_nama}
+                  {item.kriteria.C1 || "-"}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {Math.round(parseFloat(item.sub_kriteria_bobot))}
+                  {item.kriteria.C2 || "-"}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {Math.round(parseFloat(item.nilai))}
+                  {item.kriteria.C3 || "-"}
+                </TableCell>
+                <TableCell className="border border-black text-center">
+                  {item.kriteria.C4 || "-"}
+                </TableCell>
+                <TableCell className="border border-black text-center">
+                  {item.kriteria.C5 || "-"}
                 </TableCell>
               </TableRow>
             ))}
