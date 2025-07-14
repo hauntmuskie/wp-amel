@@ -57,7 +57,6 @@ export default function BerandaPage() {
         subKritRes.json(),
       ]);
 
-      // The data penilaian should show number of alternatives that have been evaluated
       const penilaianCount = altData.length;
 
       setStats({
@@ -95,13 +94,14 @@ export default function BerandaPage() {
 
       {/* Welcome Card */}
       <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg text-white p-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-center">
           <div>
             <h2 className="text-xl font-bold mb-2 text-center">
-              <span>
+              <span className="block">
                 Penerapan Metode Weighted Product (WP) Dalam Pemilihan Cat
-                Dinding Terbaik Pada TB Raja Bangunan
+                Dinding Terbaik
               </span>
+              <span className="block">Pada TB Raja Bangunan</span>
             </h2>
           </div>
         </div>

@@ -58,7 +58,7 @@ const menuItems = [
     icon: ClipboardList,
   },
   {
-    title: "Data Perhitungan",
+    title: "Perhitungan WP",
     href: "/admin/data-perhitungan",
     icon: TrendingUp,
   },

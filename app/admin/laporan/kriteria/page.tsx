@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/ReportLayout";
+import { ReportLayout } from "@/components/report-layout";
 import {
   Table,
   TableBody,
@@ -19,7 +19,13 @@ interface Kriteria {
   jenis: "benefit" | "cost";
 }
 
-export default function KriteriaReportPage() {
+interface KriteriaReportPageProps {
+  onBack?: () => void;
+}
+
+export default function KriteriaReportPage({
+  onBack,
+}: KriteriaReportPageProps) {
   const [data, setData] = useState<Kriteria[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,11 +54,11 @@ export default function KriteriaReportPage() {
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA KRITERIA">
+    <ReportLayout title="LAPORAN DATA KRITERIA" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-red-600 *:text-white">
               <TableHead className="border border-black text-center">
                 No
               </TableHead>

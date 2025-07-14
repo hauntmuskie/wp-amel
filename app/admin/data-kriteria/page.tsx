@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {  Plus, Edit, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Plus, Edit, Trash2, Save, ArrowLeft, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,7 +58,6 @@ export default function DataKriteriaPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  // Form states
   const [formData, setFormData] = useState({
     kode: "",
     nama: "",
@@ -178,138 +177,9 @@ export default function DataKriteriaPage() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="flex justify-end mb-6">
-        {/* Add Dialog */}
-        <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Tambah Data
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
-                <DialogTitle className="text-white text-base font-medium">
-                  Tambah Data Kriteria
-                </DialogTitle>
-              </div>
-            </DialogHeader>
-
-            <form onSubmit={handleAdd} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label
-                    htmlFor="add-kode"
-                    className="text-sm font-medium text-gray-700 mb-2 block"
-                  >
-                    Kode Kriteria
-                  </Label>
-                  <Input
-                    id="add-kode"
-                    type="text"
-                    className="w-full"
-                    value={formData.kode}
-                    onChange={(e) =>
-                      setFormData({ ...formData, kode: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label
-                    htmlFor="add-bobot"
-                    className="text-sm font-medium text-gray-700 mb-2 block"
-                  >
-                    Bobot Kriteria
-                  </Label>{" "}
-                  <Input
-                    id="add-bobot"
-                    type="number"
-                    min="1"
-                    max="5"
-                    step="1"
-                    placeholder="Masukkan Nilai Bobot 1-5"
-                    className="w-full"
-                    value={formData.bobot}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Parse and format to remove decimals
-                      const intValue = value
-                        ? Math.round(parseFloat(value)).toString()
-                        : "";
-                      setFormData({ ...formData, bobot: intValue });
-                    }}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <Label
-                    htmlFor="add-nama"
-                    className="text-sm font-medium text-gray-700 mb-2 block"
-                  >
-                    Nama Kriteria
-                  </Label>
-                  <Input
-                    id="add-nama"
-                    type="text"
-                    className="w-full"
-                    value={formData.nama}
-                    onChange={(e) =>
-                      setFormData({ ...formData, nama: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label
-                    htmlFor="add-atribut"
-                    className="text-sm font-medium text-gray-700 mb-2 block"
-                  >
-                    Atribut Kriteria
-                  </Label>
-                  <Select
-                    value={formData.jenis}
-                    onValueChange={(value: "benefit" | "cost") =>
-                      setFormData({ ...formData, jenis: value })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="--Pilih Atribut Kriteria--" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="benefit">Benefit</SelectItem>
-                      <SelectItem value="cost">Cost</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex gap-4 pt-4">
-                <Button
-                  type="submit"
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Simpan
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => setIsAddOpen(false)}
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Kembali
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+      <div className="flex items-center gap-2 mb-6">
+        <BarChart3 className="h-6 w-6 text-gray-600" />
+        <h1 className="text-xl font-semibold text-gray-800">Data Kriteria</h1>
       </div>
 
       {/* Main Content */}
@@ -319,9 +189,9 @@ export default function DataKriteriaPage() {
           <span className="text-base font-medium">Tabel Kriteria</span>
         </div>
 
-        {/* Search */}
+        {/* Search and Add Button */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">Cari:</span>
               <Input
@@ -331,6 +201,135 @@ export default function DataKriteriaPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tambah Data
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
+                    <DialogTitle className="text-white text-base font-medium">
+                      Tambah Data Kriteria
+                    </DialogTitle>
+                  </div>
+                </DialogHeader>
+
+                <form onSubmit={handleAdd} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label
+                        htmlFor="add-kode"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        Kode Kriteria
+                      </Label>
+                      <Input
+                        id="add-kode"
+                        type="text"
+                        className="w-full"
+                        value={formData.kode}
+                        onChange={(e) =>
+                          setFormData({ ...formData, kode: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="add-bobot"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        Bobot Kriteria
+                      </Label>{" "}
+                      <Input
+                        id="add-bobot"
+                        type="number"
+                        min="1"
+                        max="5"
+                        step="1"
+                        placeholder="Masukkan Nilai Bobot 1-5"
+                        className="w-full"
+                        value={formData.bobot}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const intValue = value
+                            ? Math.round(parseFloat(value)).toString()
+                            : "";
+                          setFormData({ ...formData, bobot: intValue });
+                        }}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label
+                        htmlFor="add-nama"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        Nama Kriteria
+                      </Label>
+                      <Input
+                        id="add-nama"
+                        type="text"
+                        className="w-full"
+                        value={formData.nama}
+                        onChange={(e) =>
+                          setFormData({ ...formData, nama: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="add-jenis"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        Atribut Kriteria
+                      </Label>
+                      <Select
+                        value={formData.jenis}
+                        onValueChange={(value: "benefit" | "cost") =>
+                          setFormData({ ...formData, jenis: value })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="--Pilih Atribut Kriteria--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="benefit">Benefit</SelectItem>
+                          <SelectItem value="cost">Cost</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <Button
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Simpan
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => setIsAddOpen(false)}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Kembali
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/ReportLayout";
+import { ReportLayout } from "@/components/report-layout";
 import {
   Table,
   TableBody,
@@ -20,7 +20,13 @@ interface SubKriteria {
   kriteria_kode: string;
 }
 
-export default function SubKriteriaReportPage() {
+interface SubKriteriaReportPageProps {
+  onBack?: () => void;
+}
+
+export default function SubKriteriaReportPage({
+  onBack,
+}: SubKriteriaReportPageProps) {
   const [data, setData] = useState<SubKriteria[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,11 +55,11 @@ export default function SubKriteriaReportPage() {
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA SUB KRITERIA">
+    <ReportLayout title="LAPORAN DATA SUB KRITERIA" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-red-600 *:text-white">
               <TableHead className="border border-black text-center">
                 No
               </TableHead>

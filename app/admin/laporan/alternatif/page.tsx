@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/ReportLayout";
+import { ReportLayout } from "@/components/report-layout";
 import {
   Table,
   TableBody,
@@ -18,7 +18,13 @@ interface Alternatif {
   jenis: "Interior" | "Eksterior";
 }
 
-export default function AlternatifReportPage() {
+interface AlternatifReportPageProps {
+  onBack?: () => void;
+}
+
+export default function AlternatifReportPage({
+  onBack,
+}: AlternatifReportPageProps) {
   const [data, setData] = useState<Alternatif[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,11 +53,11 @@ export default function AlternatifReportPage() {
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA ALTERNATIF">
+    <ReportLayout title="LAPORAN DATA ALTERNATIF" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-red-600 *:text-white">
               <TableHead className="border border-black text-center">
                 No
               </TableHead>

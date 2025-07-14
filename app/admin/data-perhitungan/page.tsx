@@ -96,7 +96,6 @@ export default function DataHasilNilaiPage() {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex justify-end mb-6">
         <div className="flex gap-2">
           <Button

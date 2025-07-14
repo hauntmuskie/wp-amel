@@ -37,6 +37,28 @@ export function PrintButton({
         margin-top: 50px;
         margin-bottom: 50px;
       }
+
+      /* Table column headers alternating red and white backgrounds */
+      table thead th:nth-child(odd),
+      table th:nth-child(odd) {
+        background-color: red !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      table thead th:nth-child(even),
+      table th:nth-child(even) {
+        background-color: red !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Ensure borders are visible */
+      table, th, td {
+        border: 1px solid #000 !important;
+      }
     `,
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/ReportLayout";
+import { ReportLayout } from "@/components/report-layout";
 import {
   Table,
   TableBody,
@@ -21,7 +21,13 @@ interface HasilNilai {
   alternatif_jenis: "Interior" | "Eksterior";
 }
 
-export default function HasilNilaiReportPage() {
+interface HasilNilaiReportPageProps {
+  onBack?: () => void;
+}
+
+export default function HasilNilaiReportPage({
+  onBack,
+}: HasilNilaiReportPageProps) {
   const [data, setData] = useState<HasilNilai[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,14 +56,11 @@ export default function HasilNilaiReportPage() {
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA HASIL NILAI">
+    <ReportLayout title="LAPORAN DATA HASIL NILAI" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="border border-black text-center">
-                Ranking
-              </TableHead>
+            <TableRow className="bg-red-600 *:text-white">
               <TableHead className="border border-black text-center">
                 Kode Alternatif
               </TableHead>
@@ -73,14 +76,14 @@ export default function HasilNilaiReportPage() {
               <TableHead className="border border-black text-center">
                 Nilai Vektor V
               </TableHead>
+              <TableHead className="border border-black text-center">
+                Ranking
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((item) => (
               <TableRow key={item.id} className="hover:bg-transparent">
-                <TableCell className="border border-black text-center font-bold">
-                  {item.ranking}
-                </TableCell>
                 <TableCell className="border border-black text-center">
                   {item.alternatif_kode}
                 </TableCell>
@@ -95,6 +98,9 @@ export default function HasilNilaiReportPage() {
                 </TableCell>
                 <TableCell className="border border-black text-center">
                   {parseFloat(item.nilai_vektor_v).toFixed(6)}
+                </TableCell>
+                <TableCell className="border border-black text-center font-bold">
+                  {item.ranking}
                 </TableCell>
               </TableRow>
             ))}

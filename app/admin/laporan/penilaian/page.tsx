@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/ReportLayout";
+import { ReportLayout } from "@/components/report-layout";
 import {
   Table,
   TableBody,
@@ -22,7 +22,13 @@ interface Penilaian {
   sub_kriteria_bobot: string;
 }
 
-export default function PenilaianReportPage() {
+interface PenilaianReportPageProps {
+  onBack?: () => void;
+}
+
+export default function PenilaianReportPage({
+  onBack,
+}: PenilaianReportPageProps) {
   const [data, setData] = useState<Penilaian[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -78,11 +84,11 @@ export default function PenilaianReportPage() {
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA PENILAIAN">
+    <ReportLayout title="LAPORAN DATA PENILAIAN" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-red-600 *:text-white">
               <TableHead className="border border-black text-center">
                 No
               </TableHead>
