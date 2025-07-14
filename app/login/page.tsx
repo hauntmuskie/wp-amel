@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -18,15 +19,12 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // Simple admin authentication
     if (formData.username === "admin" && formData.password === "admin") {
       toast.success("Login berhasil! Selamat datang Admin.");
       router.push("/admin");
     } else {
       toast.error("Username atau password salah!");
     }
-
     setIsLoading(false);
   };
 
@@ -39,64 +37,109 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Silahkan Masuk
-          </h1>
-          <div className="w-16 h-0.5 bg-gray-800 mx-auto"></div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <Label
-              htmlFor="username"
-              className="text-sm font-medium text-gray-700"
-            >
-              Username
-            </Label>
-            <Input
-              id="username"
-              name="username"
-              type="text"
-              placeholder="Masukkan Username"
-              className="mt-1"
-              value={formData.username}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              required
-            />
-          </div>
-
-          <div>
-            <Label
-              htmlFor="password"
-              className="text-sm font-medium text-gray-700"
-            >
-              Password
-            </Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Masukkan Password"
-              className="mt-1"
-              value={formData.password}
-              onChange={handleInputChange}
-              disabled={isLoading}
-              required
-            />
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3"
-            disabled={isLoading}
+    <div className="min-h-screen flex">
+      {/* Left Side - Swiss Design Visual */}
+      <div className="hidden md:flex w-1/2 bg-gradient-to-br from-red-600 via-white to-gray-100 items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+          <h2
+            className="text-5xl font-extrabold tracking-tight text-gray-900 mb-6 uppercase"
+            style={{ letterSpacing: "0.1em" }}
           >
-            {isLoading ? "Loading..." : "Login"}
-          </Button>
-        </form>
+            {/* WP-<span className="text-red-600">AMEL</span> */}
+            <Image
+              src="/image.png"
+              alt="Logo"
+              width={250}
+              height={250}
+              priority
+              quality={100}
+              className="w-full h-full"
+            />
+          </h2>
+          <p className="text-lg text-gray-700 font-medium max-w-xs text-center">
+            Sistem Pendukung Keputusan <br /> Metode Weighted Product
+          </p>
+        </div>
+        <svg
+          className="absolute -top-20 -left-20 w-[500px] h-[500px] opacity-10"
+          viewBox="0 0 500 500"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <rect x="0" y="0" width="500" height="500" rx="100" fill="#DC2626" />
+        </svg>
+        <svg
+          className="absolute bottom-0 right-0 w-64 h-64 opacity-20"
+          viewBox="0 0 256 256"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle cx="128" cy="128" r="128" fill="#1E293B" />
+        </svg>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="flex w-full md:w-1/2 items-center justify-center bg-white">
+        <div className="w-full max-w-md p-8 md:p-12 rounded-lg shadow-2xl border border-gray-100">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-wide uppercase">
+              Login Admin
+            </h1>
+            <div className="w-56 h-1 bg-red-600 rounded-full mb-2"></div>
+            <p className="text-gray-500 text-sm">
+              Masukkan username dan password untuk masuk ke dashboard admin.
+            </p>
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <Label
+                htmlFor="username"
+                className="text-sm font-semibold text-gray-700"
+              >
+                Username
+              </Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="Masukkan Username"
+                className="mt-1"
+                value={formData.username}
+                onChange={handleInputChange}
+                disabled={isLoading}
+                required
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="password"
+                className="text-sm font-semibold text-gray-700"
+              >
+                Password
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="Masukkan Password"
+                className="mt-1"
+                value={formData.password}
+                onChange={handleInputChange}
+                disabled={isLoading}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg tracking-wider shadow-md transition-all"
+              disabled={isLoading}
+            >
+              {isLoading ? "Loading..." : "Login"}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
