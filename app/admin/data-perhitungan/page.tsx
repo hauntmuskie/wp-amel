@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Calculator, RefreshCw } from "lucide-react";
+import { PageHeader } from "../_components/page-header";
+import { DataTableContainer } from "../_components/data-table-container";
+import { DataLoadingStates } from "../_components/data-loading-states";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
 
 interface NormalisasiBobot {
   id: number;
@@ -75,7 +78,6 @@ export default function DataHasilNilaiPage() {
         setNormalisasiData(data.normalisasi_bobot || []);
         setHasilData(data.hasil_perhitungan || []);
         toast.success("Perhitungan Weighted Product berhasil!");
-        // Fetch fresh results after calculation
         await fetchResults();
       } else {
         toast.error(
@@ -96,31 +98,26 @@ export default function DataHasilNilaiPage() {
 
   return (
     <div className="p-6">
+      <PageHeader icon={Calculator} title="Data Perhitungan" />
+
       <div className="flex justify-end mb-6">
-        <div className="flex gap-2">
-          <Button
-            onClick={handleCalculate}
-            disabled={calculating}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {calculating ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Calculator className="h-4 w-4 mr-2" />
-            )}
-            {calculating ? "Menghitung..." : "Hitung Weighted Product"}
-          </Button>
-        </div>
+        <Button
+          onClick={handleCalculate}
+          disabled={calculating}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          {calculating ? (
+            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+          ) : (
+            <Calculator className="h-4 w-4 mr-2" />
+          )}
+          {calculating ? "Menghitung..." : "Hitung Weighted Product"}
+        </Button>
       </div>
 
       <div className="space-y-6">
         {/* Perbaikan Bobot Kriteria */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
-            <span className="text-base font-medium">
-              Perbaikan Bobot Kriteria
-            </span>
-          </div>
+        <DataTableContainer title="Perbaikan Bobot Kriteria">
           <div className="p-4">
             <div className="overflow-x-auto">
               <Table className="w-full table-auto">
@@ -135,32 +132,46 @@ export default function DataHasilNilaiPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-semibold">Bobot Awal</TableCell>
-                    {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
-                      const item = normalisasiData.find(
-                        (n) => n.kode_kriteria === kode
-                      );
-                      return (
-                        <TableCell key={kode} className="text-center">
-                          {item ? Math.round(parseFloat(item.bobot_awal)) : "-"}
+                  <DataLoadingStates
+                    loading={loading}
+                    hasData={normalisasiData.length > 0}
+                    colSpan={6}
+                    emptyMessage="Belum ada data normalisasi. Klik tombol 'Hitung Weighted Product' untuk memulai perhitungan."
+                  />
+                  {!loading && normalisasiData.length > 0 && (
+                    <>
+                      <TableRow>
+                        <TableCell className="font-semibold">
+                          Bobot Awal
                         </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-semibold">Normalisasi</TableCell>
-                    {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
-                      const item = normalisasiData.find(
-                        (n) => n.kode_kriteria === kode
-                      );
-                      return (
-                        <TableCell key={kode} className="text-center">
-                          {item ? formatNumber(item.bobot_normal, 2) : "-"}
+                        {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
+                          const k = normalisasiData.find(
+                            (n) => n.kode_kriteria === kode
+                          );
+                          return (
+                            <TableCell className="text-center" key={kode}>
+                              {k ? parseInt(k.bobot_awal, 10) : "-"}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-semibold">
+                          Normalisasi
                         </TableCell>
-                      );
-                    })}
-                  </TableRow>
+                        {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
+                          const k = normalisasiData.find(
+                            (n) => n.kode_kriteria === kode
+                          );
+                          return (
+                            <TableCell className="text-center" key={kode}>
+                              {k ? Number(k.bobot_normal).toFixed(5) : "-"}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    </>
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -179,15 +190,10 @@ export default function DataHasilNilaiPage() {
               | Untuk kriteria <strong>cost</strong>: gunakan nilai negatif (-)
             </p>
           </div>
-        </div>
+        </DataTableContainer>
 
         {/* Perangkingan */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
-            <span className="text-base font-medium">
-              Perangkingan Hasil Weighted Product
-            </span>
-          </div>
+        <DataTableContainer title="Perangkingan Hasil Weighted Product">
           <div className="p-4">
             <div className="overflow-x-auto">
               <Table className="w-full table-auto">
@@ -206,58 +212,54 @@ export default function DataHasilNilaiPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center text-gray-500"
-                      >
-                        Loading...
-                      </TableCell>
-                    </TableRow>
-                  ) : hasilData.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={6}
-                        className="text-center text-gray-500"
-                      >
-                        Belum ada hasil perhitungan. Klik tombol &quot;Hitung
-                        Weighted Product&quot; untuk memulai perhitungan.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    hasilData.map((item, index) => (
-                      <TableRow
-                        key={item.id}
-                        className={item.ranking === 1 ? "bg-green-50" : ""}
-                      >
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell className="font-medium">
-                          {item.kode_alternatif}
-                        </TableCell>
-                        <TableCell>{item.nama_alternatif}</TableCell>
-                        <TableCell className="text-center font-mono">
-                          {formatNumber(item.nilai_vektor_s)}
-                        </TableCell>
-                        <TableCell className="text-center font-mono">
-                          {formatNumber(item.nilai_vektor_v)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              item.ranking === 1
-                                ? "bg-green-100 text-green-800"
-                                : item.ranking <= 3
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {item.ranking}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  <DataLoadingStates
+                    loading={loading}
+                    hasData={hasilData.length > 0}
+                    colSpan={6}
+                    emptyMessage="Belum ada hasil perhitungan. Klik tombol 'Hitung Weighted Product' untuk memulai perhitungan."
+                  />
+                  {!loading &&
+                    hasilData
+                      .sort((a, b) => a.ranking - b.ranking)
+                      .map((item, index) => (
+                        <TableRow
+                          key={item.id}
+                          className={item.ranking === 1 ? "bg-green-50" : ""}
+                        >
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {item.kode_alternatif}
+                          </TableCell>
+                          <TableCell>{item.nama_alternatif}</TableCell>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {formatNumber(item.nilai_vektor_s)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              {formatNumber(item.nilai_vektor_v)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                item.ranking === 1
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : item.ranking === 2
+                                  ? "bg-gray-100 text-gray-800"
+                                  : item.ranking === 3
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {item.ranking}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                 </TableBody>
               </Table>
             </div>
@@ -286,7 +288,7 @@ export default function DataHasilNilaiPage() {
               </p>
             </div>
           </div>
-        </div>
+        </DataTableContainer>
 
         {/* Summary */}
         {hasilData.length > 0 && (
@@ -301,9 +303,11 @@ export default function DataHasilNilaiPage() {
                 {hasilData.find((h) => h.ranking === 1)?.nama_alternatif}
               </span>{" "}
               dengan nilai vektor V ={" "}
-              {formatNumber(
-                hasilData.find((h) => h.ranking === 1)?.nilai_vektor_v || "0"
-              )}
+              <span className="font-bold text-green-700">
+                {formatNumber(
+                  hasilData.find((h) => h.ranking === 1)?.nilai_vektor_v || "0"
+                )}
+              </span>
               .
             </p>
           </div>

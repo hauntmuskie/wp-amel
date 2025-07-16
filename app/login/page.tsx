@@ -79,8 +79,8 @@ export default function LoginPage() {
       <div className="flex w-full md:w-1/2 items-center justify-center bg-white">
         <div className="w-full max-w-md p-8 md:p-12 rounded-lg shadow-2xl border border-gray-100">
           <div className="mb-8">
-            <h1 className="text-center text-3xl font-bold text-gray-900 tracking-wide uppercase">
-              Silahkan Login
+            <h1 className="text-center text-3xl font-bold text-gray-900 tracking-wide border-b-3 border-black pb-2">
+              Silahkan Masuk
             </h1>
             {/* <div className="w-56 h-1 bg-red-600 rounded-full mb-2"></div> */}
           </div>

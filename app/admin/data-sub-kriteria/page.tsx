@@ -1,35 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Save, ArrowLeft, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Users } from "lucide-react";
+import { PageHeader } from "../_components/page-header";
+import { DataTableContainer } from "../_components/data-table-container";
+import { SearchAndAddSection } from "../_components/search-and-add-section";
+import { FormDialog } from "../_components/form-dialog";
+import { TextField, SelectField } from "../_components/form-fields";
+import { ActionButtons } from "../_components/action-buttons";
+import { DataLoadingStates } from "../_components/data-loading-states";
+import { Dialog } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -38,8 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 interface SubKriteria {
   id: number;
@@ -65,6 +45,7 @@ export default function DataSubKriteriaPage() {
   const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -108,8 +89,15 @@ export default function DataSubKriteriaPage() {
     }
   };
 
+  const resetForm = () => {
+    setFormData({ kriteria_id: "", nama: "", bobot: "", keterangan: "" });
+    setEditingItem(null);
+  };
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     try {
       const response = await fetch("/api/sub-kriteria", {
         method: "POST",
@@ -120,18 +108,22 @@ export default function DataSubKriteriaPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         await fetchSubKriteria();
         setIsAddOpen(false);
-        setFormData({ kriteria_id: "", nama: "", bobot: "", keterangan: "" });
-        toast.success("Data sub kriteria berhasil ditambahkan!");
+        resetForm();
+        toast.success(data.message || "Data sub kriteria berhasil ditambahkan!");
         router.refresh();
       } else {
-        toast.error("Gagal menambahkan data sub kriteria!");
+        toast.error(data.error || "Gagal menambahkan data sub kriteria!");
       }
     } catch (error) {
       console.error("Error adding sub kriteria:", error);
       toast.error("Terjadi kesalahan saat menambahkan data!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -150,6 +142,8 @@ export default function DataSubKriteriaPage() {
     e.preventDefault();
     if (!editingItem) return;
 
+    setIsSubmitting(true);
+
     try {
       const response = await fetch("/api/sub-kriteria", {
         method: "PUT",
@@ -161,19 +155,26 @@ export default function DataSubKriteriaPage() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        await fetchSubKriteria();
+        if (data.type === "info") {
+          toast.info(data.error);
+        } else {
+          await fetchSubKriteria();
+          toast.success(data.message || "Data sub kriteria berhasil diperbarui!");
+          router.refresh();
+        }
         setIsEditOpen(false);
-        setEditingItem(null);
-        setFormData({ kriteria_id: "", nama: "", bobot: "", keterangan: "" });
-        toast.success("Data sub kriteria berhasil diperbarui!");
-        router.refresh();
+        resetForm();
       } else {
-        toast.error("Gagal memperbarui data sub kriteria!");
+        toast.error(data.error || "Gagal memperbarui data sub kriteria!");
       }
     } catch (error) {
       console.error("Error updating sub kriteria:", error);
       toast.error("Terjadi kesalahan saat memperbarui data!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -203,156 +204,84 @@ export default function DataSubKriteriaPage() {
       item.nama.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const kriteriaOptions = kriteriaData.map((k) => ({
+    value: k.id.toString(),
+    label: `${k.kode} - ${k.nama}`,
+  }));
+
+  const handleBobotChange = (value: string) => {
+    // Always store as integer string, no decimals
+    const intValue = value ? parseInt(value, 10).toString() : "";
+    setFormData({ ...formData, bobot: intValue });
+  };
+
+  const AddFormContent = (
+    <FormDialog
+      title="Tambah Data Sub Kriteria"
+      onSubmit={handleAdd}
+      onCancel={() => {
+        setIsAddOpen(false);
+        resetForm();
+      }}
+      isSubmitting={isSubmitting}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SelectField
+          label="Kriteria"
+          id="add-kriteria"
+          value={formData.kriteria_id}
+          onChange={(value) => setFormData({ ...formData, kriteria_id: value })}
+          placeholder="--Pilih Kriteria--"
+          options={kriteriaOptions}
+          required
+        />
+        <TextField
+          label="Bobot Sub Kriteria"
+          id="add-bobot"
+          type="number"
+          min="1"
+          max="5"
+          step="1"
+          value={formData.bobot}
+          onChange={handleBobotChange}
+          placeholder="Masukkan Nilai Bobot 1-5"
+          required
+        />
+      </div>
+      <TextField
+        label="Nama Sub Kriteria"
+        id="add-nama"
+        value={formData.nama}
+        onChange={(value) => setFormData({ ...formData, nama: value })}
+        placeholder="Masukkan nama sub kriteria"
+        required
+      />
+      <TextField
+        label="Keterangan (Opsional)"
+        id="add-keterangan"
+        value={formData.keterangan}
+        onChange={(value) => setFormData({ ...formData, keterangan: value })}
+        placeholder="Masukkan keterangan..."
+      />
+    </FormDialog>
+  );
+
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <Users className="h-6 w-6 text-gray-600" />
-        <h1 className="text-xl font-semibold text-gray-800">
-          Data Sub Kriteria
-        </h1>
-      </div>
+      {/* Page Header */}
+      <PageHeader icon={Users} title="Data Sub Kriteria" />
 
-      {/* Main Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Title Bar */}
-        <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
-          <span className="text-base font-medium">Tabel Sub Kriteria</span>
-        </div>
+      <DataTableContainer title="Tabel Sub Kriteria">
+        {/* Search and Tambah Button Section */}
+        <SearchAndAddSection
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onAddClick={() => setIsAddOpen(true)}
+          isAddOpen={isAddOpen}
+          onAddOpenChange={setIsAddOpen}
+          addDialogContent={AddFormContent}
+        />
 
-        {/* Search and Add Button */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Cari:</span>
-              <Input
-                className="w-48"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tambah Data
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
-                    <DialogTitle className="text-white text-base font-medium">
-                      Tambah Data Sub Kriteria
-                    </DialogTitle>
-                  </div>
-                </DialogHeader>
-
-                <form onSubmit={handleAdd} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label
-                        htmlFor="add-kriteria"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        Kriteria
-                      </Label>
-                      <Select
-                        value={formData.kriteria_id || ""}
-                        onValueChange={(value) =>
-                          setFormData({
-                            ...formData,
-                            kriteria_id: value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="--Pilih Kriteria--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {kriteriaData.map((kriteria) => (
-                            <SelectItem
-                              key={kriteria.id}
-                              value={kriteria.id.toString()}
-                            >
-                              {kriteria.kode} - {kriteria.nama}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label
-                        htmlFor="add-bobot"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        Bobot Sub Kriteria
-                      </Label>
-                      <Input
-                        id="add-bobot"
-                        type="number"
-                        min="1"
-                        max="5"
-                        step="1"
-                        placeholder="Masukkan Nilai Bobot 1-5"
-                        className="w-full"
-                        value={formData.bobot}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const intValue = value
-                            ? Math.round(parseFloat(value)).toString()
-                            : "";
-                          setFormData({ ...formData, bobot: intValue });
-                        }}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label
-                      htmlFor="add-nama"
-                      className="text-sm font-medium text-gray-700 mb-2 block"
-                    >
-                      Nama Sub Kriteria
-                    </Label>
-                    <Input
-                      id="add-nama"
-                      type="text"
-                      className="w-full"
-                      value={formData.nama}
-                      onChange={(e) =>
-                        setFormData({ ...formData, nama: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <Button
-                      type="submit"
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Simpan
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={() => setIsAddOpen(false)}
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Kembali
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        {/* Table */}
         <div className="p-4">
           <div className="overflow-x-auto">
             <Table className="w-full table-auto">
@@ -362,247 +291,114 @@ export default function DataSubKriteriaPage() {
                   <TableHead>Kode Kriteria</TableHead>
                   <TableHead>Nama Kriteria</TableHead>
                   <TableHead>Nama Sub Kriteria</TableHead>
-                  <TableHead>Nilai Bobot</TableHead>
-                  <TableHead className="text-center">Aksi</TableHead>
+                  <TableHead>Bobot</TableHead>
+                  <TableHead>Keterangan</TableHead>
+                  <TableHead className="text-center w-24">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center text-gray-500"
-                    >
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredData.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center text-gray-500"
-                    >
-                      Tidak ada data sub kriteria
-                    </TableCell>
-                  </TableRow>
-                ) : (
+                <DataLoadingStates
+                  loading={loading}
+                  hasData={filteredData.length > 0}
+                  colSpan={7}
+                  emptyMessage="Tidak ada data sub kriteria yang ditemukan."
+                />
+                {!loading &&
                   filteredData.map((item, index) => (
                     <TableRow key={item.id}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{item.kode_kriteria}</TableCell>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell className="font-medium">
+                        {item.kode_kriteria}
+                      </TableCell>
                       <TableCell>{item.nama_kriteria}</TableCell>
                       <TableCell>{item.nama}</TableCell>
-                      <TableCell>
-                        {Math.round(parseFloat(item.bobot))}
-                      </TableCell>
                       <TableCell className="text-center">
-                        <div className="flex gap-2 justify-center">
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Ubah
-                          </Button>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="destructive">
-                                <Trash2 className="h-3 w-3 mr-1" />
-                                Hapus
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Konfirmasi Hapus
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Apakah Anda yakin ingin menghapus data sub
-                                  kriteria &quot;{item.nama}&quot;? Tindakan ini
-                                  tidak dapat dibatalkan.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(item.id)}
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Hapus
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                        {Math.round(Number(item.bobot))}
+                      </TableCell>
+                      <TableCell>{item.keterangan}</TableCell>
+                      <TableCell>
+                        <ActionButtons
+                          onEdit={() => handleEdit(item)}
+                          onDelete={() => handleDelete(item.id)}
+                          deleteTitle="Hapus Data Sub Kriteria"
+                          deleteDescription={`Apakah Anda yakin ingin menghapus sub kriteria "${item.nama}"? Tindakan ini tidak dapat dibatalkan.`}
+                        />
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  ))}
               </TableBody>
             </Table>
           </div>
         </div>
-      </div>
+      </DataTableContainer>
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
-              <DialogTitle className="text-white text-base font-medium">
-                Ubah Data Sub Kriteria
-              </DialogTitle>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleUpdate} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="edit-kriteria"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Kode Kriteria
-                </Label>
-                <Select
-                  value={formData.kriteria_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, kriteria_id: value }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="--Pilih Kode Kriteria--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {kriteriaData.map((kriteria) => (
-                      <SelectItem
-                        key={kriteria.id}
-                        value={kriteria.id.toString()}
-                      >
-                        {kriteria.kode} - {kriteria.nama}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="edit-nama-kriteria"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Nama Kriteria
-                </Label>
-                <Input
-                  id="edit-nama-kriteria"
-                  type="text"
-                  className="w-full bg-gray-100"
-                  value={
-                    kriteriaData.find(
-                      (k) => k.id.toString() === formData.kriteria_id
-                    )?.nama || ""
-                  }
-                  readOnly
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="edit-nama-sub"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Nama Sub Kriteria
-                </Label>
-                <Input
-                  id="edit-nama-sub"
-                  type="text"
-                  className="w-full"
-                  value={formData.nama}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, nama: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="edit-bobot"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Nilai Bobot
-                </Label>
-                <Select
-                  value={formData.bobot}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, bobot: value }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih Nilai Bobot" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5">5</SelectItem>
-                    <SelectItem value="4">4</SelectItem>
-                    <SelectItem value="3">3</SelectItem>
-                    <SelectItem value="2">2</SelectItem>
-                    <SelectItem value="1">1</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label
-                htmlFor="edit-keterangan"
-                className="text-sm font-medium text-gray-700 mb-2 block"
-              >
-                Keterangan (Opsional)
-              </Label>
-              <Input
-                id="edit-keterangan"
-                type="text"
-                className="w-full"
-                value={formData.keterangan}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    keterangan: e.target.value,
-                  }))
-                }
-                placeholder="Masukkan keterangan..."
-              />
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                <Save className="h-4 w-4 mr-2" />
-                Simpan
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => {
-                  setIsEditOpen(false);
-                  setEditingItem(null);
-                  setFormData({
-                    kriteria_id: "",
-                    nama: "",
-                    bobot: "",
-                    keterangan: "",
-                  });
-                }}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Kembali
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
+        <FormDialog
+          title="Ubah Data Sub Kriteria"
+          onSubmit={handleUpdate}
+          onCancel={() => {
+            setIsEditOpen(false);
+            resetForm();
+          }}
+          isSubmitting={isSubmitting}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <SelectField
+              label="Kriteria"
+              id="edit-kriteria"
+              value={formData.kriteria_id}
+              onChange={(value) =>
+                setFormData({ ...formData, kriteria_id: value })
+              }
+              placeholder="--Pilih Kriteria--"
+              options={kriteriaOptions}
+              required
+            />
+            <TextField
+              label="Nama Kriteria"
+              id="edit-nama-kriteria"
+              value={
+                kriteriaData.find(
+                  (k) => k.id.toString() === formData.kriteria_id
+                )?.nama || ""
+              }
+              onChange={() => {}}
+              className="w-full bg-gray-100"
+              readOnly
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TextField
+              label="Nama Sub Kriteria"
+              id="edit-nama-sub"
+              value={formData.nama}
+              onChange={(value) => setFormData({ ...formData, nama: value })}
+              required
+            />
+            <TextField
+              label="Bobot Sub Kriteria"
+              id="edit-bobot"
+              type="number"
+              min="1"
+              max="5"
+              step="1"
+              value={formData.bobot}
+              onChange={handleBobotChange}
+              placeholder="Masukkan Nilai Bobot 1-5"
+              required
+            />
+          </div>
+          <TextField
+            label="Keterangan (Opsional)"
+            id="edit-keterangan"
+            value={formData.keterangan}
+            onChange={(value) =>
+              setFormData({ ...formData, keterangan: value })
+            }
+            placeholder="Masukkan keterangan..."
+          />
+        </FormDialog>
       </Dialog>
     </div>
   );

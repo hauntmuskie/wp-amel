@@ -1,42 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Plus,
-  Edit,
-  Trash2,
-  Save,
-  ArrowLeft,
-  ClipboardList,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { ClipboardList } from "lucide-react";
+import { PageHeader } from "../_components/page-header";
+import { DataTableContainer } from "../_components/data-table-container";
+import { SearchAndAddSection } from "../_components/search-and-add-section";
+import { FormDialog } from "../_components/form-dialog";
+import { SelectField } from "../_components/form-fields";
+import { ActionButtons } from "../_components/action-buttons";
+import { DataLoadingStates } from "../_components/data-loading-states";
+import { Dialog } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -45,8 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 interface Penilaian {
   id: number;
@@ -94,6 +67,7 @@ export default function DataPenilaianPage() {
   const [subKriteriaData, setSubKriteriaData] = useState<SubKriteria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -171,8 +145,21 @@ export default function DataPenilaianPage() {
     return subKriteriaData.filter((sk) => sk.kriteria_id === kriteria.id);
   };
 
+  const resetForm = () => {
+    setFormData({
+      alternatif_id: "",
+      c1_sub_kriteria_id: "",
+      c2_sub_kriteria_id: "",
+      c3_sub_kriteria_id: "",
+      c4_sub_kriteria_id: "",
+      c5_sub_kriteria_id: "",
+    });
+    setEditingItem(null);
+  };
+
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     try {
       const kriteriaMap = new Map(kriteriaData.map((k) => [k.kode, k.id]));
@@ -200,12 +187,15 @@ export default function DataPenilaianPage() {
         },
       ];
 
+      let hasError = false;
+      let errorMessage = "";
+
       for (const pen of penilaianArray) {
         const subKriteria = subKriteriaData.find(
           (sk) => sk.id === pen.sub_kriteria_id
         );
         if (subKriteria) {
-          await fetch("/api/penilaian", {
+          const response = await fetch("/api/penilaian", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -215,24 +205,30 @@ export default function DataPenilaianPage() {
               nilai: subKriteria.bobot,
             }),
           });
+
+          if (!response.ok) {
+            const data = await response.json();
+            hasError = true;
+            errorMessage = data.error || "Gagal menambahkan data penilaian!";
+            break;
+          }
         }
       }
 
-      await fetchPenilaian();
-      setIsAddOpen(false);
-      setFormData({
-        alternatif_id: "",
-        c1_sub_kriteria_id: "",
-        c2_sub_kriteria_id: "",
-        c3_sub_kriteria_id: "",
-        c4_sub_kriteria_id: "",
-        c5_sub_kriteria_id: "",
-      });
-      toast.success("Data penilaian berhasil ditambahkan!");
-      router.refresh();
+      if (hasError) {
+        toast.error(errorMessage);
+      } else {
+        await fetchPenilaian();
+        setIsAddOpen(false);
+        resetForm();
+        toast.success("Data penilaian berhasil ditambahkan!");
+        router.refresh();
+      }
     } catch (error) {
       console.error("Error adding penilaian:", error);
       toast.error("Gagal menambahkan data penilaian!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -270,6 +266,8 @@ export default function DataPenilaianPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
+
+    setIsSubmitting(true);
 
     try {
       const alternatifPenilaian = penilaianData.filter(
@@ -309,7 +307,7 @@ export default function DataPenilaianPage() {
           (sk) => sk.id === pen.sub_kriteria_id
         );
         if (subKriteria) {
-          await fetch("/api/penilaian", {
+          const response = await fetch("/api/penilaian", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -319,25 +317,25 @@ export default function DataPenilaianPage() {
               nilai: subKriteria.bobot,
             }),
           });
+
+          if (!response.ok) {
+            const data = await response.json();
+            toast.error(data.error || "Gagal memperbarui data penilaian!");
+            return;
+          }
         }
       }
 
       await fetchPenilaian();
       setIsEditOpen(false);
-      setEditingItem(null);
-      setFormData({
-        alternatif_id: "",
-        c1_sub_kriteria_id: "",
-        c2_sub_kriteria_id: "",
-        c3_sub_kriteria_id: "",
-        c4_sub_kriteria_id: "",
-        c5_sub_kriteria_id: "",
-      });
+      resetForm();
       toast.success("Data penilaian berhasil diperbarui!");
       router.refresh();
     } catch (error) {
       console.error("Error updating penilaian:", error);
       toast.error("Gagal memperbarui data penilaian!");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -388,635 +386,287 @@ export default function DataPenilaianPage() {
       item.nama_alternatif?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const alternatifOptions = alternatifData.map((a) => ({
+    value: a.id.toString(),
+    label: `${a.kode} - ${a.nama}`,
+  }));
+
+  const getSubKriteriaOptions = (kriteriaKode: string) => {
+    return getSubKriteriaByKriteria(kriteriaKode).map((sk) => ({
+      value: sk.id.toString(),
+      label: `${sk.nama} (Bobot: ${parseInt(sk.bobot)})`,
+    }));
+  };
+
+  const AddFormContent = (
+    <FormDialog
+      title="Tambah Data Penilaian"
+      onSubmit={handleAdd}
+      onCancel={() => {
+        setIsAddOpen(false);
+        resetForm();
+      }}
+      isSubmitting={isSubmitting}
+    >
+      <div className="flex flex-col gap-6">
+        <div className="w-full">
+          <SelectField
+            label="Alternatif"
+            id="add-alternatif"
+            value={formData.alternatif_id}
+            onChange={(value) =>
+              setFormData({ ...formData, alternatif_id: value })
+            }
+            placeholder="--Pilih Alternatif--"
+            options={alternatifOptions}
+            required
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SelectField
+            label="C1 - Kualitas Cat"
+            id="add-c1"
+            value={formData.c1_sub_kriteria_id}
+            onChange={(value) =>
+              setFormData({ ...formData, c1_sub_kriteria_id: value })
+            }
+            placeholder="--Pilih Sub Kriteria C1--"
+            options={getSubKriteriaOptions("C1")}
+            required
+          />
+
+          <SelectField
+            label="C2 - Harga"
+            id="add-c2"
+            value={formData.c2_sub_kriteria_id}
+            onChange={(value) =>
+              setFormData({ ...formData, c2_sub_kriteria_id: value })
+            }
+            placeholder="--Pilih Sub Kriteria C2--"
+            options={getSubKriteriaOptions("C2")}
+            required
+          />
+
+          <SelectField
+            label="C3 - Daya Tahan"
+            id="add-c3"
+            value={formData.c3_sub_kriteria_id}
+            onChange={(value) =>
+              setFormData({ ...formData, c3_sub_kriteria_id: value })
+            }
+            placeholder="--Pilih Sub Kriteria C3--"
+            options={getSubKriteriaOptions("C3")}
+            required
+          />
+
+          <SelectField
+            label="C4 - Kemudahan Aplikasi"
+            id="add-c4"
+            value={formData.c4_sub_kriteria_id}
+            onChange={(value) =>
+              setFormData({ ...formData, c4_sub_kriteria_id: value })
+            }
+            placeholder="--Pilih Sub Kriteria C4--"
+            options={getSubKriteriaOptions("C4")}
+            required
+          />
+
+          <SelectField
+            label="C5 - Waktu Pengeringan"
+            id="add-c5"
+            value={formData.c5_sub_kriteria_id}
+            onChange={(value) =>
+              setFormData({ ...formData, c5_sub_kriteria_id: value })
+            }
+            placeholder="--Pilih Sub Kriteria C5--"
+            options={getSubKriteriaOptions("C5")}
+            required
+          />
+        </div>
+      </div>
+    </FormDialog>
+  );
+
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <ClipboardList className="h-6 w-6 text-gray-600" />
-        <h1 className="text-xl font-semibold text-gray-800">Data Penilaian</h1>
-      </div>
+      <PageHeader icon={ClipboardList} title="Data Penilaian" />
 
-      {/* Main Content */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        {/* Title Bar */}
-        <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
-          <span className="text-base font-medium">Tabel Penilaian</span>
-        </div>
+      <DataTableContainer title="Tabel Penilaian">
+        <SearchAndAddSection
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onAddClick={() => setIsAddOpen(true)}
+          isAddOpen={isAddOpen}
+          onAddOpenChange={setIsAddOpen}
+          addDialogContent={AddFormContent}
+        />
 
-        {/* Search and Add Button */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Cari:</span>
-              <Input
-                className="w-48"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tambah Data
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl">
-                <DialogHeader>
-                  <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
-                    <DialogTitle className="text-white text-base font-medium">
-                      Tambah Data Penilaian
-                    </DialogTitle>
-                  </div>
-                </DialogHeader>
-
-                <form onSubmit={handleAdd} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label
-                        htmlFor="add-alternatif"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        Kode Alternatif
-                      </Label>
-                      <Select
-                        value={formData.alternatif_id}
-                        onValueChange={(value) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            alternatif_id: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="--Pilih Kode Alternatif--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {alternatifData.map((alt) => (
-                            <SelectItem key={alt.id} value={alt.id.toString()}>
-                              {alt.kode} - {alt.nama}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label
-                        htmlFor="add-nama-alternatif"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        Nama Alternatif
-                      </Label>
-                      <Input
-                        id="add-nama-alternatif"
-                        type="text"
-                        className="w-full bg-gray-100"
-                        value={
-                          alternatifData.find(
-                            (a) => a.id.toString() === formData.alternatif_id
-                          )?.nama || ""
-                        }
-                        readOnly
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label
-                        htmlFor="add-c1"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        (C1) Kualitas Pigmen
-                      </Label>
-                      <Select
-                        value={formData.c1_sub_kriteria_id}
-                        onValueChange={(value) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            c1_sub_kriteria_id: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="--Pilih Kualitas Pigmen--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSubKriteriaByKriteria("C1").map((sk) => (
-                            <SelectItem key={sk.id} value={sk.id.toString()}>
-                              {sk.bobot} - {sk.nama}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label
-                        htmlFor="add-c2"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        (C2) Harga
-                      </Label>
-                      <Select
-                        value={formData.c2_sub_kriteria_id}
-                        onValueChange={(value) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            c2_sub_kriteria_id: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="--Pilih Harga--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSubKriteriaByKriteria("C2").map((sk) => (
-                            <SelectItem key={sk.id} value={sk.id.toString()}>
-                              {sk.bobot} - {sk.nama}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <Label
-                        htmlFor="add-c3"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        (C3) Ketahanan Warna
-                      </Label>
-                      <Select
-                        value={formData.c3_sub_kriteria_id}
-                        onValueChange={(value) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            c3_sub_kriteria_id: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="--Pilih Ketahanan Warna--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSubKriteriaByKriteria("C3").map((sk) => (
-                            <SelectItem key={sk.id} value={sk.id.toString()}>
-                              {sk.bobot} - {sk.nama}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label
-                        htmlFor="add-c4"
-                        className="text-sm font-medium text-gray-700 mb-2 block"
-                      >
-                        (C4) Daya Sebar
-                      </Label>
-                      <Select
-                        value={formData.c4_sub_kriteria_id}
-                        onValueChange={(value) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            c4_sub_kriteria_id: value,
-                          }))
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="--Pilih Daya Sebar--" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getSubKriteriaByKriteria("C4").map((sk) => (
-                            <SelectItem key={sk.id} value={sk.id.toString()}>
-                              {sk.bobot} - {sk.nama}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label
-                      htmlFor="add-c5"
-                      className="text-sm font-medium text-gray-700 mb-2 block"
-                    >
-                      (C5) Variasi Warna
-                    </Label>
-                    <Select
-                      value={formData.c5_sub_kriteria_id}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          c5_sub_kriteria_id: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="--Pilih Variasi Warna--" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getSubKriteriaByKriteria("C5").map((sk) => (
-                          <SelectItem key={sk.id} value={sk.id.toString()}>
-                            {sk.bobot} - {sk.nama}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <Button
-                      type="submit"
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      Simpan
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={() => {
-                        setIsAddOpen(false);
-                        setFormData({
-                          alternatif_id: "",
-                          c1_sub_kriteria_id: "",
-                          c2_sub_kriteria_id: "",
-                          c3_sub_kriteria_id: "",
-                          c4_sub_kriteria_id: "",
-                          c5_sub_kriteria_id: "",
-                        });
-                      }}
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Kembali
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        {/* Table */}
         <div className="p-4">
           <div className="overflow-x-auto">
             <Table className="w-full table-auto">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16">No</TableHead>
-                  <TableHead>Kode Alternatif</TableHead>
+                  <TableHead>Kode</TableHead>
                   <TableHead>Nama Alternatif</TableHead>
                   <TableHead className="text-center">C1</TableHead>
                   <TableHead className="text-center">C2</TableHead>
                   <TableHead className="text-center">C3</TableHead>
                   <TableHead className="text-center">C4</TableHead>
                   <TableHead className="text-center">C5</TableHead>
-                  <TableHead className="text-center">Aksi</TableHead>
+                  <TableHead className="text-center w-24">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={9}
-                      className="text-center text-gray-500"
-                    >
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredData.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={9}
-                      className="text-center text-gray-500"
-                    >
-                      Tidak ada data penilaian
-                    </TableCell>
-                  </TableRow>
-                ) : (
+                <DataLoadingStates
+                  loading={loading}
+                  hasData={filteredData.length > 0}
+                  colSpan={9}
+                  emptyMessage="Tidak ada data penilaian yang ditemukan."
+                />
+                {!loading &&
                   filteredData.map((item, index) => (
                     <TableRow key={item.alternatif_id}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{item.kode_alternatif}</TableCell>
+                      <TableCell className="font-medium">{index + 1}</TableCell>
+                      <TableCell className="font-medium">
+                        {item.kode_alternatif}
+                      </TableCell>
                       <TableCell>{item.nama_alternatif}</TableCell>
                       <TableCell className="text-center">
-                        {item.kriteria.C1 || "-"}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {item.kriteria.C1 || 0}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.kriteria.C2 || "-"}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {item.kriteria.C2 || 0}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.kriteria.C3 || "-"}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          {item.kriteria.C3 || 0}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.kriteria.C4 || "-"}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                          {item.kriteria.C4 || 0}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        {item.kriteria.C5 || "-"}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800">
+                          {item.kriteria.C5 || 0}
+                        </span>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex gap-2 justify-center">
-                          <Button
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() =>
-                              handleEdit(
-                                penilaianData.find(
-                                  (p) => p.alternatif_id === item.alternatif_id
-                                )!
-                              )
-                            }
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Ubah
-                          </Button>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="destructive">
-                                <Trash2 className="h-3 w-3 mr-1" />
-                                Hapus
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Konfirmasi Hapus
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Apakah Anda yakin ingin menghapus penilaian
-                                  untuk &quot;{item.nama_alternatif}&quot;?
-                                  Tindakan ini tidak dapat dibatalkan.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Batal</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() =>
-                                    handleDelete(item.alternatif_id)
-                                  }
-                                  className="bg-red-600 hover:bg-red-700"
-                                >
-                                  Hapus
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
+                      <TableCell>
+                        <ActionButtons
+                          onEdit={() =>
+                            handleEdit(
+                              penilaianData.find(
+                                (p) => p.alternatif_id === item.alternatif_id
+                              )!
+                            )
+                          }
+                          onDelete={() => handleDelete(item.alternatif_id)}
+                          deleteTitle="Hapus Data Penilaian"
+                          deleteDescription={`Apakah Anda yakin ingin menghapus penilaian untuk "${item.nama_alternatif}"? Tindakan ini tidak dapat dibatalkan.`}
+                        />
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
+                  ))}
               </TableBody>
             </Table>
           </div>
         </div>
-      </div>
+      </DataTableContainer>
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
-              <DialogTitle className="text-white text-base font-medium">
-                Ubah Data Penilaian
-              </DialogTitle>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleUpdate} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="edit-alternatif"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Kode Alternatif
-                </Label>
-                <Select
-                  value={formData.alternatif_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({ ...prev, alternatif_id: value }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="--Pilih Kode Alternatif--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {alternatifData.map((alt) => (
-                      <SelectItem key={alt.id} value={alt.id.toString()}>
-                        {alt.kode} - {alt.nama}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="edit-nama-alternatif"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  Nama Alternatif
-                </Label>
-                <Input
-                  id="edit-nama-alternatif"
-                  type="text"
-                  className="w-full bg-gray-100"
-                  value={
-                    alternatifData.find(
-                      (a) => a.id.toString() === formData.alternatif_id
-                    )?.nama || ""
-                  }
-                  readOnly
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="edit-c1"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  (C1) Kualitas Pigmen
-                </Label>
-                <Select
-                  value={formData.c1_sub_kriteria_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      c1_sub_kriteria_id: value,
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="--Pilih Kualitas Pigmen--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getSubKriteriaByKriteria("C1").map((sk) => (
-                      <SelectItem key={sk.id} value={sk.id.toString()}>
-                        {sk.bobot} - {sk.nama}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="edit-c2"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  (C2) Harga
-                </Label>
-                <Select
-                  value={formData.c2_sub_kriteria_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      c2_sub_kriteria_id: value,
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="--Pilih Harga--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getSubKriteriaByKriteria("C2").map((sk) => (
-                      <SelectItem key={sk.id} value={sk.id.toString()}>
-                        {sk.bobot} - {sk.nama}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="edit-c3"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  (C3) Ketahanan
-                </Label>
-                <Select
-                  value={formData.c3_sub_kriteria_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      c3_sub_kriteria_id: value,
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="--Pilih Ketahanan--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getSubKriteriaByKriteria("C3").map((sk) => (
-                      <SelectItem key={sk.id} value={sk.id.toString()}>
-                        {sk.bobot} - {sk.nama}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label
-                  htmlFor="edit-c4"
-                  className="text-sm font-medium text-gray-700 mb-2 block"
-                >
-                  (C4) Daya Sebar
-                </Label>
-                <Select
-                  value={formData.c4_sub_kriteria_id}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      c4_sub_kriteria_id: value,
-                    }))
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="--Pilih Daya Sebar--" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getSubKriteriaByKriteria("C4").map((sk) => (
-                      <SelectItem key={sk.id} value={sk.id.toString()}>
-                        {sk.bobot} - {sk.nama}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label
-                htmlFor="edit-c5"
-                className="text-sm font-medium text-gray-700 mb-2 block"
-              >
-                (C5) Variasi Warna
-              </Label>
-              <Select
-                value={formData.c5_sub_kriteria_id}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    c5_sub_kriteria_id: value,
-                  }))
+        <FormDialog
+          title="Ubah Data Penilaian"
+          onSubmit={handleUpdate}
+          onCancel={() => {
+            setIsEditOpen(false);
+            resetForm();
+          }}
+          isSubmitting={isSubmitting}
+        >
+          <div className="flex flex-col gap-6">
+            <div className="w-full">
+              <SelectField
+                label="Alternatif"
+                id="edit-alternatif"
+                value={formData.alternatif_id}
+                onChange={(value) =>
+                  setFormData({ ...formData, alternatif_id: value })
                 }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="--Pilih Variasi Warna--" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getSubKriteriaByKriteria("C5").map((sk) => (
-                    <SelectItem key={sk.id} value={sk.id.toString()}>
-                      {sk.bobot} - {sk.nama}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="--Pilih Alternatif--"
+                options={alternatifOptions}
+                required
+              />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <SelectField
+                label="C1 - Kualitas Cat"
+                id="edit-c1"
+                value={formData.c1_sub_kriteria_id}
+                onChange={(value) =>
+                  setFormData({ ...formData, c1_sub_kriteria_id: value })
+                }
+                placeholder="--Pilih Sub Kriteria C1--"
+                options={getSubKriteriaOptions("C1")}
+                required
+              />
 
-            <div className="flex gap-4 pt-4">
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                <Save className="h-4 w-4 mr-2" />
-                Simpan
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => {
-                  setIsEditOpen(false);
-                  setEditingItem(null);
-                  setFormData({
-                    alternatif_id: "",
-                    c1_sub_kriteria_id: "",
-                    c2_sub_kriteria_id: "",
-                    c3_sub_kriteria_id: "",
-                    c4_sub_kriteria_id: "",
-                    c5_sub_kriteria_id: "",
-                  });
-                }}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Kembali
-              </Button>
+              <SelectField
+                label="C2 - Harga"
+                id="edit-c2"
+                value={formData.c2_sub_kriteria_id}
+                onChange={(value) =>
+                  setFormData({ ...formData, c2_sub_kriteria_id: value })
+                }
+                placeholder="--Pilih Sub Kriteria C2--"
+                options={getSubKriteriaOptions("C2")}
+                required
+              />
+
+              <SelectField
+                label="C3 - Daya Tahan"
+                id="edit-c3"
+                value={formData.c3_sub_kriteria_id}
+                onChange={(value) =>
+                  setFormData({ ...formData, c3_sub_kriteria_id: value })
+                }
+                placeholder="--Pilih Sub Kriteria C3--"
+                options={getSubKriteriaOptions("C3")}
+                required
+              />
+
+              <SelectField
+                label="C4 - Kemudahan Aplikasi"
+                id="edit-c4"
+                value={formData.c4_sub_kriteria_id}
+                onChange={(value) =>
+                  setFormData({ ...formData, c4_sub_kriteria_id: value })
+                }
+                placeholder="--Pilih Sub Kriteria C4--"
+                options={getSubKriteriaOptions("C4")}
+                required
+              />
+
+              <SelectField
+                label="C5 - Waktu Pengeringan"
+                id="edit-c5"
+                value={formData.c5_sub_kriteria_id}
+                onChange={(value) =>
+                  setFormData({ ...formData, c5_sub_kriteria_id: value })
+                }
+                placeholder="--Pilih Sub Kriteria C5--"
+                options={getSubKriteriaOptions("C5")}
+                required
+              />
             </div>
-          </form>
-        </DialogContent>
+          </div>
+        </FormDialog>
       </Dialog>
     </div>
   );

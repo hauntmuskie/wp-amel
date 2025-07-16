@@ -64,7 +64,10 @@ export default function SubKriteriaReportPage({
                 No
               </TableHead>
               <TableHead className="border border-black text-center">
-                Kriteria
+                Kode Kriteria
+              </TableHead>
+              <TableHead className="border border-black text-center">
+                Nama Kriteria
               </TableHead>
               <TableHead className="border border-black text-center">
                 Nama Sub Kriteria
@@ -81,7 +84,10 @@ export default function SubKriteriaReportPage({
                   {index + 1}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {item.kriteria_kode} - {item.kriteria_nama}
+                  {item.kriteria_kode}
+                </TableCell>
+                <TableCell className="border border-black text-center">
+                  {item.kriteria_nama}
                 </TableCell>
                 <TableCell className="border border-black text-center">
                   {item.nama}

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Home, Package, Target, ClipboardList, Calculator } from "lucide-react";
+import { PageHeader } from "./_components/page-header";
+import { DataTableContainer } from "./_components/data-table-container";
+import { DataLoadingStates } from "./_components/data-loading-states";
 import {
   Table,
   TableBody,
@@ -28,6 +32,18 @@ interface HasilPerhitungan {
   ranking: number;
 }
 
+interface StatCard {
+  title: string;
+  value: number;
+  description: string;
+  icon: typeof Package;
+  color: {
+    bg: string;
+    text: string;
+    iconBg: string;
+  };
+}
+
 export default function BerandaPage() {
   const [stats, setStats] = useState<DashboardStats>({
     alternatif: 0,
@@ -37,6 +53,7 @@ export default function BerandaPage() {
   });
   const [rankingData, setRankingData] = useState<HasilPerhitungan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rankingLoading, setRankingLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
@@ -81,16 +98,90 @@ export default function BerandaPage() {
       }
     } catch (error) {
       console.error("Error fetching ranking data:", error);
+    } finally {
+      setRankingLoading(false);
     }
   };
 
+  const statCards: StatCard[] = [
+    {
+      title: "Data Alternatif",
+      value: stats.alternatif,
+      description: "Merek cat dinding",
+      icon: Package,
+      color: {
+        bg: "bg-blue-600",
+        text: "text-blue-600",
+        iconBg: "bg-blue-100",
+      },
+    },
+    {
+      title: "Data Kriteria",
+      value: stats.kriteria,
+      description: "Parameter penilaian",
+      icon: Target,
+      color: {
+        bg: "bg-green-600",
+        text: "text-green-600",
+        iconBg: "bg-green-100",
+      },
+    },
+    {
+      title: "Data Sub Kriteria",
+      value: stats.subKriteria,
+      description: "Detail penilaian",
+      icon: ClipboardList,
+      color: {
+        bg: "bg-purple-600",
+        text: "text-purple-600",
+        iconBg: "bg-purple-100",
+      },
+    },
+    {
+      title: "Data Penilaian",
+      value: stats.penilaian,
+      description: "Matrix evaluasi",
+      icon: Calculator,
+      color: {
+        bg: "bg-orange-600",
+        text: "text-orange-600",
+        iconBg: "bg-orange-100",
+      },
+    },
+  ];
+
+  const StatCard = ({
+    title,
+    value,
+    description,
+    icon: Icon,
+    color,
+  }: StatCard) => (
+    <Card className="transition-all duration-200 hover:shadow-lg">
+      <CardContent className="py-3 px-4">
+        <div className="flex items-center justify-between gap-2 min-h-0">
+          <div className="flex-1 min-w-0">
+            <p className="text-gray-600 text-md font-medium leading-tight truncate">
+              {title}
+            </p>
+            <p className={`text-3xl font-bold ${color.text} leading-tight`}>
+              {loading ? "..." : value}
+            </p>
+            <p className="text-gray-500 text-xs mt-0.5 leading-tight truncate">
+              {description}
+            </p>
+          </div>
+          <div className={`${color.iconBg} p-2 rounded-full flex-shrink-0`}>
+            <Icon className={`h-5 w-5 ${color.text}`} />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-6">
-        <Home className="h-6 w-6 text-gray-600" />
-        <h1 className="text-xl font-semibold text-gray-800">Dashboard</h1>
-      </div>
+      <PageHeader icon={Home} title="Dashboard" />
 
       {/* Welcome Card */}
       <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg text-white p-8">
@@ -110,119 +201,60 @@ export default function BerandaPage() {
       {/* Statistics Cards */}
       <div className="bg-gray-50 rounded-xl p-6 shadow-sm border border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Data Alternatif
-                </p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {loading ? "..." : stats.alternatif}
-                </p>
-                <p className="text-gray-500 text-xs mt-1">Merek cat dinding</p>
-              </div>
-              <div className="bg-blue-100 p-3 rounded-full">
-                <Package className="h-6 w-6 text-blue-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Data Kriteria
-                </p>
-                <p className="text-3xl font-bold text-green-600">
-                  {loading ? "..." : stats.kriteria}
-                </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  Parameter penilaian
-                </p>
-              </div>
-              <div className="bg-green-100 p-3 rounded-full">
-                <Target className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Data Sub Kriteria
-                </p>
-                <p className="text-3xl font-bold text-purple-600">
-                  {loading ? "..." : stats.subKriteria}
-                </p>
-                <p className="text-gray-500 text-xs mt-1">Detail penilaian</p>
-              </div>
-              <div className="bg-purple-100 p-3 rounded-full">
-                <ClipboardList className="h-6 w-6 text-purple-600" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 transform transition-all duration-200 hover:scale-105 hover:shadow-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Data Penilaian
-                </p>
-                <p className="text-3xl font-bold text-orange-600">
-                  {loading ? "..." : stats.penilaian}
-                </p>
-                <p className="text-gray-500 text-xs mt-1">Matrix evaluasi</p>
-              </div>
-              <div className="bg-orange-100 p-3 rounded-full">
-                <Calculator className="h-6 w-6 text-orange-600" />
-              </div>
-            </div>
-          </div>
+          {statCards.map((card, index) => (
+            <StatCard key={index} {...card} />
+          ))}
         </div>
       </div>
 
       {/* Ranking Table */}
-      {rankingData.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg">
-            <h3 className="text-base font-medium">
-              Peringkat Hasil Weighted Product
-            </h3>
-          </div>
-          <div className="p-6">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">No</TableHead>
-                  <TableHead>Kode Alternatif</TableHead>
-                  <TableHead>Nama Alternatif</TableHead>
-                  <TableHead className="text-center">Nilai Vektor S</TableHead>
-                  <TableHead className="text-center">Nilai Vektor V</TableHead>
-                  <TableHead className="text-center">Peringkat</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rankingData
+      <DataTableContainer title="Peringkat Hasil Weighted Product">
+        <div className="p-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">No</TableHead>
+                <TableHead>Kode Alternatif</TableHead>
+                <TableHead>Nama Alternatif</TableHead>
+                <TableHead className="text-center">Nilai Vektor S</TableHead>
+                <TableHead className="text-center">Nilai Vektor V</TableHead>
+                <TableHead className="text-center">Peringkat</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <DataLoadingStates
+                loading={rankingLoading}
+                hasData={rankingData.length > 0}
+                colSpan={6}
+                emptyMessage="Belum ada hasil perhitungan. Silakan lakukan perhitungan terlebih dahulu di halaman Data Perhitungan."
+              />
+              {!rankingLoading &&
+                rankingData
                   .sort((a, b) => a.ranking - b.ranking)
                   .map((item, index) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell>{item.kode_alternatif}</TableCell>
+                      <TableCell className="font-medium">
+                        {item.kode_alternatif}
+                      </TableCell>
                       <TableCell>{item.nama_alternatif}</TableCell>
                       <TableCell className="text-center">
-                        {parseFloat(item.nilai_vektor_s).toFixed(5)}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {parseFloat(item.nilai_vektor_s).toFixed(5)}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        {parseFloat(item.nilai_vektor_v).toFixed(5)}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          {parseFloat(item.nilai_vektor_v).toFixed(5)}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             item.ranking === 1
-                              ? "bg-green-100 text-green-800"
+                              ? "bg-yellow-100 text-yellow-800"
                               : item.ranking === 2
-                              ? "bg-blue-100 text-blue-800"
+                              ? "bg-gray-100 text-gray-800"
                               : item.ranking === 3
                               ? "bg-orange-100 text-orange-800"
                               : "bg-gray-100 text-gray-800"
@@ -233,10 +265,37 @@ export default function BerandaPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-              </TableBody>
-            </Table>
-          </div>
+            </TableBody>
+          </Table>
         </div>
+      </DataTableContainer>
+
+      {/* Best Alternative Summary */}
+      {rankingData.length > 0 && (
+        <Card className="border-x border-y">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-800">
+              🏆 Rekomendasi Terbaik
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700">
+              Berdasarkan perhitungan Weighted Product, cat dinding terbaik
+              adalah{" "}
+              <span className="font-bold text-green-700">
+                {rankingData.find((h) => h.ranking === 1)?.nama_alternatif}
+              </span>{" "}
+              dengan skor akhir{" "}
+              <span className="font-bold text-green-700">
+                {parseFloat(
+                  rankingData.find((h) => h.ranking === 1)?.nilai_vektor_v ||
+                    "0"
+                ).toFixed(5)}
+              </span>
+              .
+            </p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

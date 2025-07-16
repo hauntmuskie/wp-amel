@@ -16,7 +16,7 @@ export async function GET() {
       })
       .from(sub_kriteria)
       .leftJoin(kriteria, eq(sub_kriteria.kriteria_id, kriteria.id))
-      .orderBy(desc(sub_kriteria.bobot), kriteria.kode, sub_kriteria.nama);
+      .orderBy(kriteria.kode, desc(sub_kriteria.bobot), sub_kriteria.nama);
 
     return NextResponse.json(data);
   } catch (error) {

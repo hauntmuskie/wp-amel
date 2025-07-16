@@ -31,7 +31,7 @@ INSERT INTO kriteria (kode, nama, bobot, jenis) VALUES
 ('C2', 'Harga', '4', 'cost'),
 ('C3', 'Ketahanan', '5', 'benefit'),
 ('C4', 'Daya Sebar', '3', 'benefit'),
-('C5', 'Variasi Warna', '3', 'benefit')
+('C5', 'Waktu Pengeringan', '3', 'benefit')
 ON DUPLICATE KEY UPDATE 
     nama = VALUES(nama),
     bobot = VALUES(bobot),
@@ -73,13 +73,13 @@ INSERT INTO sub_kriteria (kriteria_id, nama, bobot, keterangan) VALUES
 ((SELECT id FROM kriteria WHERE kode = 'C4'), '6 - 8 m²/Kg', '2', 'Daya sebar kurang'),
 ((SELECT id FROM kriteria WHERE kode = 'C4'), '< 6 m²/Kg', '1', 'Daya sebar rendah');
 
--- C5 - Variasi Warna (Color Variation)
+-- C5 - Waktu Pengeringan (Drying Time)
 INSERT INTO sub_kriteria (kriteria_id, nama, bobot, keterangan) VALUES
-((SELECT id FROM kriteria WHERE kode = 'C5'), '> 50 Warna', '5', 'Variasi warna sangat banyak'),
-((SELECT id FROM kriteria WHERE kode = 'C5'), '30 – 50 Warna', '4', 'Variasi warna banyak'),
-((SELECT id FROM kriteria WHERE kode = 'C5'), '15 – 30 Warna', '3', 'Variasi warna cukup'),
-((SELECT id FROM kriteria WHERE kode = 'C5'), '5 – 15 Warna', '2', 'Variasi warna terbatas'),
-((SELECT id FROM kriteria WHERE kode = 'C5'), '< 5 Warna', '1', 'Variasi warna sangat terbatas');
+((SELECT id FROM kriteria WHERE kode = 'C5'), '-+ 5 Jam', '1', 'Sangat buruk'),
+((SELECT id FROM kriteria WHERE kode = 'C5'), '3 Jam', '2', 'Buruk'),
+((SELECT id FROM kriteria WHERE kode = 'C5'), '1 jam - 2 Jam', '3', 'Cukup'),
+((SELECT id FROM kriteria WHERE kode = 'C5'), '1 Jam', '4', 'Baik'),
+((SELECT id FROM kriteria WHERE kode = 'C5'), '40 Menit - 1 Jam', '5', 'Sangat baik');
 
 -- ========================================
 -- PENILAIAN DATA (Assessment Matrix)
@@ -147,12 +147,12 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A2'),
-    (SELECT id FROM kriteria WHERE kode = 'C5'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '3'),
+    (SELECT id FROM kriteria WHERE kode = 'C6'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '3'),
     '3'
 );
 
--- A3 - Dulux Catylac: C1=3, C2=2, C3=3, C4=4, C5=5
+-- A3 - Dulux Catylac: C1=3, C2=2, C3=3, C4=4, C6=5
 INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUES
 (
     (SELECT id FROM alternatif WHERE kode = 'A3'),
@@ -180,12 +180,12 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A3'),
-    (SELECT id FROM kriteria WHERE kode = 'C5'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '5'),
+    (SELECT id FROM kriteria WHERE kode = 'C6'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '5'),
     '5'
 );
 
--- A4 - Mowilex Emulsion: C1=4, C2=3, C3=4, C4=5, C5=2
+-- A4 - Mowilex Emulsion: C1=4, C2=3, C3=4, C4=5, C6=2
 INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUES
 (
     (SELECT id FROM alternatif WHERE kode = 'A4'),
@@ -213,12 +213,12 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A4'),
-    (SELECT id FROM kriteria WHERE kode = 'C5'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '2'),
+    (SELECT id FROM kriteria WHERE kode = 'C6'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '2'),
     '2'
 );
 
--- A5 - No Drop: C1=4, C2=4, C3=3, C4=1, C5=3
+-- A5 - No Drop: C1=4, C2=4, C3=3, C4=1, C6=3
 INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUES
 (
     (SELECT id FROM alternatif WHERE kode = 'A5'),
@@ -246,8 +246,8 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A5'),
-    (SELECT id FROM kriteria WHERE kode = 'C5'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '3'),
+    (SELECT id FROM kriteria WHERE kode = 'C6'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '3'),
     '3'
 );
 
