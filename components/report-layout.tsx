@@ -76,7 +76,7 @@ export function ReportLayout({
                 Jl. Bangka IX C No.92, RT.12/RW.5, Pela Mampang, Kec.
               </p>
               <p className="text-sm text-gray-600">
-                Mampang Prapatan, Kota Jakarta Selatan, DKI Jakarta 12520
+                Mampang Prapatan, Kota Jakarta Selatan, DKI Jakarta 12720
               </p>
             </div>
           </div>

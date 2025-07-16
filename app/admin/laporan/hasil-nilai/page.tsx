@@ -56,7 +56,7 @@ export default function HasilNilaiReportPage({
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA HASIL NILAI" onBack={onBack}>
+    <ReportLayout title="LAPORAN PERHITUNGAN WP" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>

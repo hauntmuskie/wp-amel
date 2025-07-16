@@ -22,6 +22,14 @@ interface Penilaian {
   sub_kriteria_bobot: string;
 }
 
+interface Kriteria {
+  id: number;
+  kode: string;
+  nama: string;
+  bobot: string;
+  jenis: string;
+}
+
 interface PenilaianReportPageProps {
   onBack?: () => void;
 }
@@ -30,14 +38,20 @@ export default function PenilaianReportPage({
   onBack,
 }: PenilaianReportPageProps) {
   const [data, setData] = useState<Penilaian[]>([]);
+  const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/penilaian");
-        const result = await response.json();
-        setData(result);
+        const [penilaianResponse, kriteriaResponse] = await Promise.all([
+          fetch("/api/reports/penilaian"),
+          fetch("/api/reports/kriteria"),
+        ]);
+        const penilaianResult = await penilaianResponse.json();
+        const kriteriaResult = await kriteriaResponse.json();
+        setData(penilaianResult);
+        setKriteriaData(kriteriaResult);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -149,6 +163,16 @@ export default function PenilaianReportPage({
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Keterangan Section */}
+      <h3 className="text-lg font-semibold mt-7 my-3">Keterangan:</h3>
+      <div className="space-y-1">
+        {kriteriaData.map((kriteria) => (
+          <p key={kriteria.id} className="text-sm">
+            <strong>{kriteria.kode}</strong> = {kriteria.nama}
+          </p>
+        ))}
       </div>
     </ReportLayout>
   );

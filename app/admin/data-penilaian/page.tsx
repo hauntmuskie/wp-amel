@@ -171,6 +171,71 @@ export default function DataPenilaianPage() {
     return subKriteriaData.filter((sk) => sk.kriteria_id === kriteria.id);
   };
 
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const kriteriaMap = new Map(kriteriaData.map((k) => [k.kode, k.id]));
+
+      const penilaianArray = [
+        {
+          kriteria_id: kriteriaMap.get("C1")!,
+          sub_kriteria_id: parseInt(formData.c1_sub_kriteria_id),
+        },
+        {
+          kriteria_id: kriteriaMap.get("C2")!,
+          sub_kriteria_id: parseInt(formData.c2_sub_kriteria_id),
+        },
+        {
+          kriteria_id: kriteriaMap.get("C3")!,
+          sub_kriteria_id: parseInt(formData.c3_sub_kriteria_id),
+        },
+        {
+          kriteria_id: kriteriaMap.get("C4")!,
+          sub_kriteria_id: parseInt(formData.c4_sub_kriteria_id),
+        },
+        {
+          kriteria_id: kriteriaMap.get("C5")!,
+          sub_kriteria_id: parseInt(formData.c5_sub_kriteria_id),
+        },
+      ];
+
+      for (const pen of penilaianArray) {
+        const subKriteria = subKriteriaData.find(
+          (sk) => sk.id === pen.sub_kriteria_id
+        );
+        if (subKriteria) {
+          await fetch("/api/penilaian", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              alternatif_id: parseInt(formData.alternatif_id),
+              kriteria_id: pen.kriteria_id,
+              sub_kriteria_id: pen.sub_kriteria_id,
+              nilai: subKriteria.bobot,
+            }),
+          });
+        }
+      }
+
+      await fetchPenilaian();
+      setIsAddOpen(false);
+      setFormData({
+        alternatif_id: "",
+        c1_sub_kriteria_id: "",
+        c2_sub_kriteria_id: "",
+        c3_sub_kriteria_id: "",
+        c4_sub_kriteria_id: "",
+        c5_sub_kriteria_id: "",
+      });
+      toast.success("Data penilaian berhasil ditambahkan!");
+      router.refresh();
+    } catch (error) {
+      console.error("Error adding penilaian:", error);
+      toast.error("Gagal menambahkan data penilaian!");
+    }
+  };
+
   const handleEdit = (item: Penilaian) => {
     setEditingItem(item);
     const alternatifPenilaian = penilaianData.filter(
@@ -357,6 +422,245 @@ export default function DataPenilaianPage() {
                   Tambah Data
                 </Button>
               </DialogTrigger>
+              <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                  <div className="bg-red-600 text-white px-4 py-2 -mx-6 -mt-6 mb-6 rounded-t-lg">
+                    <DialogTitle className="text-white text-base font-medium">
+                      Tambah Data Penilaian
+                    </DialogTitle>
+                  </div>
+                </DialogHeader>
+
+                <form onSubmit={handleAdd} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label
+                        htmlFor="add-alternatif"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        Kode Alternatif
+                      </Label>
+                      <Select
+                        value={formData.alternatif_id}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            alternatif_id: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="--Pilih Kode Alternatif--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {alternatifData.map((alt) => (
+                            <SelectItem key={alt.id} value={alt.id.toString()}>
+                              {alt.kode} - {alt.nama}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="add-nama-alternatif"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        Nama Alternatif
+                      </Label>
+                      <Input
+                        id="add-nama-alternatif"
+                        type="text"
+                        className="w-full bg-gray-100"
+                        value={
+                          alternatifData.find(
+                            (a) => a.id.toString() === formData.alternatif_id
+                          )?.nama || ""
+                        }
+                        readOnly
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label
+                        htmlFor="add-c1"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        (C1) Kualitas Pigmen
+                      </Label>
+                      <Select
+                        value={formData.c1_sub_kriteria_id}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            c1_sub_kriteria_id: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="--Pilih Kualitas Pigmen--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getSubKriteriaByKriteria("C1").map((sk) => (
+                            <SelectItem key={sk.id} value={sk.id.toString()}>
+                              {sk.bobot} - {sk.nama}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="add-c2"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        (C2) Harga
+                      </Label>
+                      <Select
+                        value={formData.c2_sub_kriteria_id}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            c2_sub_kriteria_id: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="--Pilih Harga--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getSubKriteriaByKriteria("C2").map((sk) => (
+                            <SelectItem key={sk.id} value={sk.id.toString()}>
+                              {sk.bobot} - {sk.nama}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <Label
+                        htmlFor="add-c3"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        (C3) Ketahanan Warna
+                      </Label>
+                      <Select
+                        value={formData.c3_sub_kriteria_id}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            c3_sub_kriteria_id: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="--Pilih Ketahanan Warna--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getSubKriteriaByKriteria("C3").map((sk) => (
+                            <SelectItem key={sk.id} value={sk.id.toString()}>
+                              {sk.bobot} - {sk.nama}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="add-c4"
+                        className="text-sm font-medium text-gray-700 mb-2 block"
+                      >
+                        (C4) Daya Sebar
+                      </Label>
+                      <Select
+                        value={formData.c4_sub_kriteria_id}
+                        onValueChange={(value) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            c4_sub_kriteria_id: value,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="--Pilih Daya Sebar--" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getSubKriteriaByKriteria("C4").map((sk) => (
+                            <SelectItem key={sk.id} value={sk.id.toString()}>
+                              {sk.bobot} - {sk.nama}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor="add-c5"
+                      className="text-sm font-medium text-gray-700 mb-2 block"
+                    >
+                      (C5) Variasi Warna
+                    </Label>
+                    <Select
+                      value={formData.c5_sub_kriteria_id}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          c5_sub_kriteria_id: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="--Pilih Variasi Warna--" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getSubKriteriaByKriteria("C5").map((sk) => (
+                          <SelectItem key={sk.id} value={sk.id.toString()}>
+                            {sk.bobot} - {sk.nama}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <Button
+                      type="submit"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      Simpan
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() => {
+                        setIsAddOpen(false);
+                        setFormData({
+                          alternatif_id: "",
+                          c1_sub_kriteria_id: "",
+                          c2_sub_kriteria_id: "",
+                          c3_sub_kriteria_id: "",
+                          c4_sub_kriteria_id: "",
+                          c5_sub_kriteria_id: "",
+                        });
+                      }}
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Kembali
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
             </Dialog>
           </div>
         </div>

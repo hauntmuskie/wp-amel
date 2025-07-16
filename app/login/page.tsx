@@ -49,16 +49,13 @@ export default function LoginPage() {
             <Image
               src="/image.png"
               alt="Logo"
-              width={250}
-              height={250}
+              width={280}
+              height={280}
               priority
               quality={100}
               className="w-full h-full"
             />
           </h2>
-          <p className="text-lg text-gray-700 font-medium max-w-xs text-center">
-            Sistem Pendukung Keputusan <br /> Metode Weighted Product
-          </p>
         </div>
         <svg
           className="absolute -top-20 -left-20 w-[500px] h-[500px] opacity-10"
@@ -82,13 +79,10 @@ export default function LoginPage() {
       <div className="flex w-full md:w-1/2 items-center justify-center bg-white">
         <div className="w-full max-w-md p-8 md:p-12 rounded-lg shadow-2xl border border-gray-100">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-wide uppercase">
-              Login Admin
+            <h1 className="text-center text-3xl font-bold text-gray-900 tracking-wide uppercase">
+              Silahkan Login
             </h1>
-            <div className="w-56 h-1 bg-red-600 rounded-full mb-2"></div>
-            <p className="text-gray-500 text-sm">
-              Masukkan username dan password untuk masuk ke dashboard admin.
-            </p>
+            {/* <div className="w-56 h-1 bg-red-600 rounded-full mb-2"></div> */}
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

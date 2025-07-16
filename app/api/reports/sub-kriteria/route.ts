@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/database";
 import { sub_kriteria, kriteria } from "@/database/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -16,8 +16,8 @@ export async function GET() {
       })
       .from(sub_kriteria)
       .leftJoin(kriteria, eq(sub_kriteria.kriteria_id, kriteria.id))
-      .orderBy(kriteria.kode, sub_kriteria.nama);
-    
+      .orderBy(desc(sub_kriteria.bobot), kriteria.kode, sub_kriteria.nama);
+
     return NextResponse.json(data);
   } catch (error) {
     console.error("Error fetching sub kriteria report:", error);

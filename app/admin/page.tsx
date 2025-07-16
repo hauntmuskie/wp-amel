@@ -131,7 +131,7 @@ export default function BerandaPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">
-                  Kriteria Utama
+                  Data Kriteria
                 </p>
                 <p className="text-3xl font-bold text-green-600">
                   {loading ? "..." : stats.kriteria}
@@ -150,7 +150,7 @@ export default function BerandaPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">
-                  Sub Kriteria
+                  Data Sub Kriteria
                 </p>
                 <p className="text-3xl font-bold text-purple-600">
                   {loading ? "..." : stats.subKriteria}
