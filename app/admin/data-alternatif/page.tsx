@@ -36,6 +36,9 @@ export default function DataAlternatifPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [jenisOptions, setJenisOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -46,7 +49,20 @@ export default function DataAlternatifPage() {
 
   useEffect(() => {
     fetchAlternatif();
+    fetchEnums();
   }, []);
+
+  const fetchEnums = async () => {
+    try {
+      const response = await fetch("/api/enums");
+      if (response.ok) {
+        const data = await response.json();
+        setJenisOptions(data.jenisAlternatif);
+      }
+    } catch (error) {
+      console.error("Error fetching enums:", error);
+    }
+  };
 
   const fetchAlternatif = async () => {
     try {
@@ -171,11 +187,6 @@ export default function DataAlternatifPage() {
       item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.jenis.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const jenisOptions = [
-    { value: "Interior", label: "Interior" },
-    { value: "Eksterior", label: "Eksterior" },
-  ];
 
   const AddFormContent = (
     <FormDialog

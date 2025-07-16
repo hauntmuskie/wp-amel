@@ -164,28 +164,19 @@ export default function DataPenilaianPage() {
     try {
       const kriteriaMap = new Map(kriteriaData.map((k) => [k.kode, k.id]));
 
-      const penilaianArray = [
-        {
-          kriteria_id: kriteriaMap.get("C1")!,
-          sub_kriteria_id: parseInt(formData.c1_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C2")!,
-          sub_kriteria_id: parseInt(formData.c2_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C3")!,
-          sub_kriteria_id: parseInt(formData.c3_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C4")!,
-          sub_kriteria_id: parseInt(formData.c4_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C5")!,
-          sub_kriteria_id: parseInt(formData.c5_sub_kriteria_id),
-        },
-      ];
+      // Build penilaian array dynamically based on existing kriteria
+      const penilaianArray = kriteriaData
+        .map((kriteria) => {
+          const formFieldKey =
+            `${kriteria.kode.toLowerCase()}_sub_kriteria_id` as keyof typeof formData;
+          const subKriteriaId = formData[formFieldKey] as string;
+
+          return {
+            kriteria_id: kriteria.id,
+            sub_kriteria_id: parseInt(subKriteriaId),
+          };
+        })
+        .filter((item) => item.sub_kriteria_id && !isNaN(item.sub_kriteria_id));
 
       let hasError = false;
       let errorMessage = "";
@@ -237,29 +228,22 @@ export default function DataPenilaianPage() {
     const alternatifPenilaian = penilaianData.filter(
       (p) => p.alternatif_id === item.alternatif_id
     );
-    setFormData({
+
+    // Build form data dynamically based on existing kriteria
+    const formUpdate: any = {
       alternatif_id: item.alternatif_id.toString(),
-      c1_sub_kriteria_id:
-        alternatifPenilaian
-          .find((p) => p.kode_kriteria === "C1")
-          ?.sub_kriteria_id.toString() || "",
-      c2_sub_kriteria_id:
-        alternatifPenilaian
-          .find((p) => p.kode_kriteria === "C2")
-          ?.sub_kriteria_id.toString() || "",
-      c3_sub_kriteria_id:
-        alternatifPenilaian
-          .find((p) => p.kode_kriteria === "C3")
-          ?.sub_kriteria_id.toString() || "",
-      c4_sub_kriteria_id:
-        alternatifPenilaian
-          .find((p) => p.kode_kriteria === "C4")
-          ?.sub_kriteria_id.toString() || "",
-      c5_sub_kriteria_id:
-        alternatifPenilaian
-          .find((p) => p.kode_kriteria === "C5")
-          ?.sub_kriteria_id.toString() || "",
+    };
+
+    kriteriaData.forEach((kriteria) => {
+      const formFieldKey = `${kriteria.kode.toLowerCase()}_sub_kriteria_id`;
+      const penilaianForKriteria = alternatifPenilaian.find(
+        (p) => p.kode_kriteria === kriteria.kode
+      );
+      formUpdate[formFieldKey] =
+        penilaianForKriteria?.sub_kriteria_id.toString() || "";
     });
+
+    setFormData(formUpdate);
     setIsEditOpen(true);
   };
 
@@ -279,28 +263,19 @@ export default function DataPenilaianPage() {
 
       const kriteriaMap = new Map(kriteriaData.map((k) => [k.kode, k.id]));
 
-      const penilaianArray = [
-        {
-          kriteria_id: kriteriaMap.get("C1")!,
-          sub_kriteria_id: parseInt(formData.c1_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C2")!,
-          sub_kriteria_id: parseInt(formData.c2_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C3")!,
-          sub_kriteria_id: parseInt(formData.c3_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C4")!,
-          sub_kriteria_id: parseInt(formData.c4_sub_kriteria_id),
-        },
-        {
-          kriteria_id: kriteriaMap.get("C5")!,
-          sub_kriteria_id: parseInt(formData.c5_sub_kriteria_id),
-        },
-      ];
+      // Build penilaian array dynamically based on existing kriteria
+      const penilaianArray = kriteriaData
+        .map((kriteria) => {
+          const formFieldKey =
+            `${kriteria.kode.toLowerCase()}_sub_kriteria_id` as keyof typeof formData;
+          const subKriteriaId = formData[formFieldKey] as string;
+
+          return {
+            kriteria_id: kriteria.id,
+            sub_kriteria_id: parseInt(subKriteriaId),
+          };
+        })
+        .filter((item) => item.sub_kriteria_id && !isNaN(item.sub_kriteria_id));
 
       for (const pen of penilaianArray) {
         const subKriteria = subKriteriaData.find(

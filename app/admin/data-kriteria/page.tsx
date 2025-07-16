@@ -37,6 +37,7 @@ export default function DataKriteriaPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [jenisOptions, setJenisOptions] = useState<Array<{value: string, label: string}>>([]);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -48,7 +49,20 @@ export default function DataKriteriaPage() {
 
   useEffect(() => {
     fetchKriteria();
+    fetchEnums();
   }, []);
+
+  const fetchEnums = async () => {
+    try {
+      const response = await fetch("/api/enums");
+      if (response.ok) {
+        const data = await response.json();
+        setJenisOptions(data.jenisKriteria);
+      }
+    } catch (error) {
+      console.error("Error fetching enums:", error);
+    }
+  };
 
   const fetchKriteria = async () => {
     try {
@@ -174,11 +188,6 @@ export default function DataKriteriaPage() {
       item.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.jenis.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const jenisOptions = [
-    { value: "benefit", label: "Benefit" },
-    { value: "cost", label: "Cost" },
-  ];
 
   const handleBobotChange = (value: string) => {
     // Always store as integer string, no decimals

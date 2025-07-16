@@ -43,10 +43,25 @@ export default function DataHasilNilaiPage() {
   const [hasilData, setHasilData] = useState<HasilPerhitungan[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
+  const [kriteriaCodes, setKriteriaCodes] = useState<string[]>([]);
 
   useEffect(() => {
     fetchResults();
+    fetchKriteria();
   }, []);
+
+  const fetchKriteria = async () => {
+    try {
+      const response = await fetch("/api/kriteria");
+      if (response.ok) {
+        const data = await response.json();
+        const codes = data.map((k: any) => k.kode).sort();
+        setKriteriaCodes(codes);
+      }
+    } catch (error) {
+      console.error("Error fetching kriteria:", error);
+    }
+  };
 
   const fetchResults = async () => {
     try {
@@ -124,18 +139,25 @@ export default function DataHasilNilaiPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Kriteria</TableHead>
-                    <TableHead className="text-center">C1 (Benefit)</TableHead>
-                    <TableHead className="text-center">C2 (Cost)</TableHead>
-                    <TableHead className="text-center">C3 (Benefit)</TableHead>
-                    <TableHead className="text-center">C4 (Benefit)</TableHead>
-                    <TableHead className="text-center">C5 (Benefit)</TableHead>
+                    {kriteriaCodes.map((kode) => {
+                      const k = normalisasiData.find(
+                        (n) => n.kode_kriteria === kode
+                      );
+                      return (
+                        <TableHead className="text-center" key={kode}>
+                          {kode} (
+                          {k?.jenis_kriteria === "benefit" ? "Benefit" : "Cost"}
+                          )
+                        </TableHead>
+                      );
+                    })}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <DataLoadingStates
                     loading={loading}
                     hasData={normalisasiData.length > 0}
-                    colSpan={6}
+                    colSpan={kriteriaCodes.length + 1}
                     emptyMessage="Belum ada data normalisasi. Klik tombol 'Hitung Weighted Product' untuk memulai perhitungan."
                   />
                   {!loading && normalisasiData.length > 0 && (
@@ -144,7 +166,7 @@ export default function DataHasilNilaiPage() {
                         <TableCell className="font-semibold">
                           Bobot Awal
                         </TableCell>
-                        {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
+                        {kriteriaCodes.map((kode) => {
                           const k = normalisasiData.find(
                             (n) => n.kode_kriteria === kode
                           );
@@ -159,7 +181,7 @@ export default function DataHasilNilaiPage() {
                         <TableCell className="font-semibold">
                           Normalisasi
                         </TableCell>
-                        {["C1", "C2", "C3", "C4", "C5"].map((kode) => {
+                        {kriteriaCodes.map((kode) => {
                           const k = normalisasiData.find(
                             (n) => n.kode_kriteria === kode
                           );
