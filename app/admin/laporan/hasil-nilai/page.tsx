@@ -10,15 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getWeightedProductResults } from "@/_actions/weighted-product-actions";
 
 interface HasilNilai {
   id: number;
   nilai_vektor_s: string;
   nilai_vektor_v: string;
   ranking: number;
-  alternatif_kode: string;
-  alternatif_nama: string;
-  alternatif_jenis: "Interior" | "Eksterior";
+  kode_alternatif: string | null;
+  nama_alternatif: string | null;
 }
 
 interface HasilNilaiReportPageProps {
@@ -34,9 +34,10 @@ export default function HasilNilaiReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/hasil-nilai");
-        const result = await response.json();
-        setData(result);
+        const result = await getWeightedProductResults();
+        if (result.success && result.data && result.data.hasil_perhitungan) {
+          setData(result.data.hasil_perhitungan);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -68,9 +69,6 @@ export default function HasilNilaiReportPage({
                 Nama Alternatif
               </TableHead>
               <TableHead className="border border-black text-center">
-                Jenis
-              </TableHead>
-              <TableHead className="border border-black text-center">
                 Nilai Vektor S
               </TableHead>
               <TableHead className="border border-black text-center">
@@ -85,13 +83,10 @@ export default function HasilNilaiReportPage({
             {data.map((item) => (
               <TableRow key={item.id} className="hover:bg-transparent">
                 <TableCell className="border border-black text-center">
-                  {item.alternatif_kode}
+                  {item.kode_alternatif}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {item.alternatif_nama}
-                </TableCell>
-                <TableCell className="border border-black text-center">
-                  {item.alternatif_jenis}
+                  {item.nama_alternatif}
                 </TableCell>
                 <TableCell className="border border-black text-center">
                   {parseFloat(item.nilai_vektor_s).toFixed(6)}

@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getKriteria } from "@/_actions/kriteria-actions";
 
 interface Kriteria {
   id: number;
@@ -32,9 +33,10 @@ export default function KriteriaReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/kriteria");
-        const result = await response.json();
-        setData(result);
+        const result = await getKriteria();
+        if (result.success && result.data) {
+          setData(result.data);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

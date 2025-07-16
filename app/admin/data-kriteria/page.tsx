@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useActionState } from "react";
 import { toast } from "sonner";
 import { BarChart3 } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
@@ -20,6 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  getKriteria,
+  createKriteria,
+  updateKriteria,
+  deleteKriteria,
+  type KriteriaFormState,
+} from "@/_actions/kriteria-actions";
+import { getEnums } from "@/_actions/enum-actions";
 
 interface Kriteria {
   id: number;
@@ -36,149 +43,93 @@ export default function DataKriteriaPage() {
   const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [jenisOptions, setJenisOptions] = useState<Array<{value: string, label: string}>>([]);
-  const router = useRouter();
+  const [jenisOptions, setJenisOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
-  const [formData, setFormData] = useState({
-    kode: "",
-    nama: "",
-    bobot: "",
-    jenis: "" as "benefit" | "cost" | "",
-  });
+  // Server Action states
+  const [createState, createAction, isCreating] = useActionState<
+    KriteriaFormState,
+    FormData
+  >(createKriteria, {});
+
+  const [updateState, updateAction, isUpdating] = useActionState<
+    KriteriaFormState,
+    FormData
+  >(
+    editingItem ? updateKriteria.bind(null, editingItem.id) : createKriteria,
+    {}
+  );
 
   useEffect(() => {
     fetchKriteria();
     fetchEnums();
   }, []);
 
-  const fetchEnums = async () => {
-    try {
-      const response = await fetch("/api/enums");
-      if (response.ok) {
-        const data = await response.json();
-        setJenisOptions(data.jenisKriteria);
+  // Handle create action result
+  useEffect(() => {
+    if (createState.success) {
+      setIsAddOpen(false);
+      resetForm();
+      toast.success("Data kriteria berhasil ditambahkan!");
+      fetchKriteria();
+    } else if (createState.error) {
+      if (createState.type === "info") {
+        toast.info(createState.error);
+      } else {
+        toast.error(createState.error);
       }
-    } catch (error) {
-      console.error("Error fetching enums:", error);
+    }
+  }, [createState]);
+
+  // Handle update action result
+  useEffect(() => {
+    if (updateState.success) {
+      setIsEditOpen(false);
+      resetForm();
+      toast.success("Data kriteria berhasil diperbarui!");
+      fetchKriteria();
+    } else if (updateState.error) {
+      if (updateState.type === "info") {
+        toast.info(updateState.error);
+      } else {
+        toast.error(updateState.error);
+      }
+    }
+  }, [updateState]);
+
+  const fetchEnums = async () => {
+    const result = await getEnums();
+    if (result.success && result.data) {
+      setJenisOptions(result.data.jenisKriteria);
     }
   };
 
   const fetchKriteria = async () => {
-    try {
-      const response = await fetch("/api/kriteria", {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setKriteriaData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching kriteria:", error);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const result = await getKriteria();
+    if (result.success && result.data) {
+      setKriteriaData(result.data);
     }
+    setLoading(false);
   };
 
   const resetForm = () => {
-    setFormData({ kode: "", nama: "", bobot: "", jenis: "" });
     setEditingItem(null);
-  };
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/kriteria", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        await fetchKriteria();
-        setIsAddOpen(false);
-        resetForm();
-        toast.success(data.message || "Data kriteria berhasil ditambahkan!");
-        router.refresh();
-      } else {
-        toast.error(data.error || "Gagal menambahkan data kriteria!");
-      }
-    } catch (error) {
-      console.error("Error adding kriteria:", error);
-      toast.error("Terjadi kesalahan saat menambahkan data!");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleEdit = (item: Kriteria) => {
     setEditingItem(item);
-    setFormData({
-      kode: item.kode,
-      nama: item.nama,
-      bobot: item.bobot,
-      jenis: item.jenis,
-    });
     setIsEditOpen(true);
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingItem) return;
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/kriteria", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingItem.id, ...formData }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.type === "info") {
-          toast.info(data.error);
-        } else {
-          await fetchKriteria();
-          toast.success(data.message || "Data kriteria berhasil diperbarui!");
-          router.refresh();
-        }
-        setIsEditOpen(false);
-        resetForm();
-      } else {
-        toast.error(data.error || "Gagal memperbarui data kriteria!");
-      }
-    } catch (error) {
-      console.error("Error updating kriteria:", error);
-      toast.error("Terjadi kesalahan saat memperbarui data!");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleDelete = async (id: number) => {
-    try {
-      const response = await fetch(`/api/kriteria?id=${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        await fetchKriteria();
-        toast.success("Data kriteria berhasil dihapus!");
-        router.refresh();
-      } else {
-        toast.error("Gagal menghapus data kriteria!");
-      }
-    } catch (error) {
-      console.error("Error deleting kriteria:", error);
-      toast.error("Terjadi kesalahan saat menghapus data!");
+    const result = await deleteKriteria(id);
+    if (result.success) {
+      await fetchKriteria();
+      toast.success("Data kriteria berhasil dihapus!");
+    } else {
+      toast.error(result.error || "Gagal menghapus data kriteria!");
     }
   };
 
@@ -189,40 +140,36 @@ export default function DataKriteriaPage() {
       item.jenis.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleBobotChange = (value: string) => {
-    // Always store as integer string, no decimals
-    const intValue = value ? parseInt(value, 10).toString() : "";
-    setFormData({ ...formData, bobot: intValue });
-  };
-
   const AddFormContent = (
     <FormDialog
       title="Tambah Data Kriteria"
-      onSubmit={handleAdd}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+        createAction(formData);
+      }}
       onCancel={() => {
         setIsAddOpen(false);
         resetForm();
       }}
-      isSubmitting={isSubmitting}
+      isSubmitting={isCreating}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TextField
           label="Kode Kriteria"
           id="add-kode"
-          value={formData.kode}
-          onChange={(value) => setFormData({ ...formData, kode: value })}
+          name="kode"
           placeholder="Masukkan kode kriteria"
           required
         />
         <TextField
           label="Bobot Kriteria"
           id="add-bobot"
+          name="bobot"
           type="number"
           min="1"
           max="5"
           step="1"
-          value={formData.bobot}
-          onChange={handleBobotChange}
           placeholder="Masukkan Nilai Bobot 1-5"
           required
         />
@@ -231,18 +178,14 @@ export default function DataKriteriaPage() {
         <TextField
           label="Nama Kriteria"
           id="add-nama"
-          value={formData.nama}
-          onChange={(value) => setFormData({ ...formData, nama: value })}
+          name="nama"
           placeholder="Masukkan nama kriteria"
           required
         />
         <SelectField
           label="Atribut Kriteria"
           id="add-jenis"
-          value={formData.jenis}
-          onChange={(value) =>
-            setFormData({ ...formData, jenis: value as "benefit" | "cost" })
-          }
+          name="jenis"
           placeholder="--Pilih Atribut Kriteria--"
           options={jenisOptions}
           required
@@ -292,7 +235,7 @@ export default function DataKriteriaPage() {
                       <TableCell className="font-medium">{item.kode}</TableCell>
                       <TableCell>{item.nama}</TableCell>
                       <TableCell className="text-center">
-                        {parseInt(item.bobot, 10)}
+                        {Number.parseInt(item.bobot, 10)}
                       </TableCell>
                       <TableCell className="text-center">
                         <span
@@ -325,42 +268,38 @@ export default function DataKriteriaPage() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <FormDialog
           title="Ubah Data Kriteria"
-          onSubmit={handleUpdate}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget as HTMLFormElement);
+            updateAction(formData);
+          }}
           onCancel={() => {
             setIsEditOpen(false);
             resetForm();
           }}
-          isSubmitting={isSubmitting}
+          isSubmitting={isUpdating}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TextField
               label="Kode Kriteria"
               id="edit-kode"
-              value={formData.kode}
-              onChange={(value) => setFormData({ ...formData, kode: value })}
+              name="kode"
+              defaultValue={editingItem?.kode}
               required
             />
             <TextField
               label="Bobot Kriteria"
               id="edit-bobot"
+              name="bobot"
               type="number"
               min="1"
               max="5"
               step="1"
-              value={formData.bobot}
-              onChange={handleBobotChange}
-              placeholder="Masukkan Nilai Bobot 1-5"
-              required
-            />
-            <TextField
-              label="Bobot Kriteria"
-              id="edit-bobot"
-              type="number"
-              min="1"
-              max="5"
-              step="1"
-              value={formData.bobot}
-              onChange={handleBobotChange}
+              defaultValue={
+                editingItem?.bobot
+                  ? Math.round(Number.parseFloat(editingItem.bobot)).toString()
+                  : ""
+              }
               placeholder="Masukkan Nilai Bobot 1-5"
               required
             />
@@ -369,17 +308,15 @@ export default function DataKriteriaPage() {
             <TextField
               label="Nama Kriteria"
               id="edit-nama"
-              value={formData.nama}
-              onChange={(value) => setFormData({ ...formData, nama: value })}
+              name="nama"
+              defaultValue={editingItem?.nama}
               required
             />
             <SelectField
               label="Atribut Kriteria"
               id="edit-jenis"
-              value={formData.jenis}
-              onChange={(value) =>
-                setFormData({ ...formData, jenis: value as "benefit" | "cost" })
-              }
+              name="jenis"
+              defaultValue={editingItem?.jenis}
               placeholder="--Pilih Atribut Kriteria--"
               options={jenisOptions}
               required

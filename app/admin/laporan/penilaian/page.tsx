@@ -10,16 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getPenilaian } from "@/_actions/penilaian-actions";
+import { getKriteria } from "@/_actions/kriteria-actions";
 
 interface Penilaian {
   id: number;
   nilai: string;
-  alternatif_kode: string;
-  alternatif_nama: string;
-  kriteria_kode: string;
-  kriteria_nama: string;
-  sub_kriteria_nama: string;
-  sub_kriteria_bobot: string;
+  kode_alternatif: string | null;
+  nama_alternatif: string | null;
+  kode_kriteria: string | null;
+  nama_kriteria: string | null;
+  nama_sub_kriteria: string | null;
 }
 
 interface Kriteria {
@@ -44,14 +45,17 @@ export default function PenilaianReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [penilaianResponse, kriteriaResponse] = await Promise.all([
-          fetch("/api/reports/penilaian"),
-          fetch("/api/reports/kriteria"),
+        const [penilaianResult, kriteriaResult] = await Promise.all([
+          getPenilaian(),
+          getKriteria(),
         ]);
-        const penilaianResult = await penilaianResponse.json();
-        const kriteriaResult = await kriteriaResponse.json();
-        setData(penilaianResult);
-        setKriteriaData(kriteriaResult);
+        
+        if (penilaianResult.success && penilaianResult.data) {
+          setData(penilaianResult.data);
+        }
+        if (kriteriaResult.success && kriteriaResult.data) {
+          setKriteriaData(kriteriaResult.data);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -63,18 +67,18 @@ export default function PenilaianReportPage({
   }, []);
 
   const groupedPenilaian = data
-    .filter((item) => item.alternatif_kode && item.alternatif_nama) // Filter out records with missing alternatif data
+    .filter((item) => item.kode_alternatif && item.nama_alternatif && item.kode_kriteria) // Filter out records with missing data
     .reduce(
       (acc, curr) => {
-        const key = `${curr.alternatif_kode}-${curr.alternatif_nama}`;
+        const key = `${curr.kode_alternatif}-${curr.nama_alternatif}`;
         if (!acc[key]) {
           acc[key] = {
-            kode_alternatif: curr.alternatif_kode,
-            nama_alternatif: curr.alternatif_nama,
+            kode_alternatif: curr.kode_alternatif!,
+            nama_alternatif: curr.nama_alternatif!,
             kriteria: {},
           };
         }
-        acc[key].kriteria[curr.kriteria_kode] = Number(curr.nilai);
+        acc[key].kriteria[curr.kode_kriteria!] = Number(curr.nilai);
         return acc;
       },
       {} as Record<

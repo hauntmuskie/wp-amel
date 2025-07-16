@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+"use server";
 
-export async function GET() {
+export async function getEnums() {
   try {
     const enums = {
       jenisAlternatif: [
@@ -13,12 +13,9 @@ export async function GET() {
       ],
     };
 
-    return NextResponse.json(enums);
+    return { success: true, data: enums };
   } catch (error) {
     console.error("Error fetching enums:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch enum values" },
-      { status: 500 }
-    );
+    return { success: false, error: "Failed to fetch enum values" };
   }
 }

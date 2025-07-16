@@ -15,13 +15,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  calculateWeightedProduct,
+  getWeightedProductResults,
+} from "@/_actions/weighted-product-actions";
+import { getKriteria } from "@/_actions/kriteria-actions";
 
 interface NormalisasiBobot {
   id: number;
   kriteria_id: number;
-  kode_kriteria: string;
-  nama_kriteria: string;
-  jenis_kriteria: string;
+  kode_kriteria: string | null;
+  nama_kriteria: string | null;
+  jenis_kriteria: string | null;
   bobot_awal: string;
   bobot_normal: string;
 }
@@ -29,8 +34,8 @@ interface NormalisasiBobot {
 interface HasilPerhitungan {
   id: number;
   alternatif_id: number;
-  kode_alternatif: string;
-  nama_alternatif: string;
+  kode_alternatif: string | null;
+  nama_alternatif: string | null;
   nilai_vektor_s: string;
   nilai_vektor_v: string;
   ranking: number;
@@ -51,64 +56,43 @@ export default function DataHasilNilaiPage() {
   }, []);
 
   const fetchKriteria = async () => {
-    try {
-      const response = await fetch("/api/kriteria");
-      if (response.ok) {
-        const data = await response.json();
-        const codes = data.map((k: any) => k.kode).sort();
-        setKriteriaCodes(codes);
-      }
-    } catch (error) {
-      console.error("Error fetching kriteria:", error);
+    const result = await getKriteria();
+    if (result.success && result.data) {
+      const codes = result.data.map((k: any) => k.kode).sort();
+      setKriteriaCodes(codes);
     }
   };
 
   const fetchResults = async () => {
-    try {
-      const response = await fetch(`/api/weighted-product/results`, {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setNormalisasiData(data.normalisasi_bobot || []);
-        setHasilData(data.hasil_perhitungan || []);
-      }
-    } catch (error) {
-      console.error("Error fetching results:", error);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const result = await getWeightedProductResults();
+    if (result.success && result.data) {
+      setNormalisasiData(result.data.normalisasi_bobot || []);
+      setHasilData(result.data.hasil_perhitungan || []);
     }
+    setLoading(false);
   };
 
   const handleCalculate = async () => {
     setCalculating(true);
-    try {
-      const response = await fetch("/api/weighted-product/calculate", {
-        method: "POST",
-      });
+    const result = await calculateWeightedProduct();
 
-      if (response.ok) {
-        const data = await response.json();
-        setNormalisasiData(data.normalisasi_bobot || []);
-        setHasilData(data.hasil_perhitungan || []);
-        toast.success("Perhitungan Weighted Product berhasil!");
-        await fetchResults();
-      } else {
-        toast.error(
+    if (result.success && result.data) {
+      setNormalisasiData(result.data.normalisasi_bobot || []);
+      setHasilData(result.data.hasil_perhitungan || []);
+      toast.success("Perhitungan Weighted Product berhasil!");
+      await fetchResults();
+    } else {
+      toast.error(
+        result.error ||
           "Gagal melakukan perhitungan. Pastikan data alternatif, kriteria, dan penilaian sudah lengkap."
-        );
-      }
-    } catch (error) {
-      console.error("Error calculating:", error);
-      toast.error("Terjadi error saat melakukan perhitungan.");
-    } finally {
-      setCalculating(false);
+      );
     }
+    setCalculating(false);
   };
 
-  const formatNumber = (value: string, decimals: number = 5) => {
-    return parseFloat(value).toFixed(decimals);
+  const formatNumber = (value: string, decimals = 5) => {
+    return Number.parseFloat(value).toFixed(decimals);
   };
 
   return (
@@ -172,7 +156,7 @@ export default function DataHasilNilaiPage() {
                           );
                           return (
                             <TableCell className="text-center" key={kode}>
-                              {k ? parseInt(k.bobot_awal, 10) : "-"}
+                              {k ? Number.parseInt(k.bobot_awal, 10) : "-"}
                             </TableCell>
                           );
                         })}

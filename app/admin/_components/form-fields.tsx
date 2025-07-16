@@ -1,3 +1,5 @@
+"use client";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,12 +15,14 @@ interface FormFieldProps {
   id: string;
   required?: boolean;
   className?: string;
+  name?: string;
 }
 
 interface TextFieldProps extends FormFieldProps {
   type?: string;
-  value: string;
-  onChange: (value: string) => void;
+  value?: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
   placeholder?: string;
   min?: string;
   max?: string;
@@ -27,8 +31,9 @@ interface TextFieldProps extends FormFieldProps {
 }
 
 interface SelectFieldProps extends FormFieldProps {
-  value: string;
-  onChange: (value: string) => void;
+  value?: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
   placeholder?: string;
   options: Array<{ value: string; label: string }>;
 }
@@ -36,8 +41,10 @@ interface SelectFieldProps extends FormFieldProps {
 export function TextField({
   label,
   id,
+  name,
   type = "text",
   value,
+  defaultValue,
   onChange,
   placeholder,
   required = false,
@@ -57,10 +64,12 @@ export function TextField({
       </Label>
       <Input
         id={id}
+        name={name || id}
         type={type}
         className={className}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        defaultValue={defaultValue}
+        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         placeholder={placeholder}
         required={required}
         min={min}
@@ -75,7 +84,9 @@ export function TextField({
 export function SelectField({
   label,
   id,
+  name,
   value,
+  defaultValue,
   onChange,
   placeholder,
   options,
@@ -90,7 +101,13 @@ export function SelectField({
       >
         {label}
       </Label>
-      <Select value={value} onValueChange={onChange} required={required}>
+      <Select
+        name={name || id}
+        value={value}
+        defaultValue={defaultValue}
+        onValueChange={onChange}
+        required={required}
+      >
         <SelectTrigger className={className}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

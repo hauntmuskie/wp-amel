@@ -10,14 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getSubKriteria } from "@/_actions/sub-kriteria-actions";
 
 interface SubKriteria {
   id: number;
   nama: string;
   bobot: string;
   keterangan: string | null;
-  kriteria_nama: string;
-  kriteria_kode: string;
+  nama_kriteria: string | null;
+  kode_kriteria: string | null;
 }
 
 interface SubKriteriaReportPageProps {
@@ -33,9 +34,10 @@ export default function SubKriteriaReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/sub-kriteria");
-        const result = await response.json();
-        setData(result);
+        const result = await getSubKriteria();
+        if (result.success && result.data) {
+          setData(result.data);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -84,10 +86,10 @@ export default function SubKriteriaReportPage({
                   {index + 1}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {item.kriteria_kode}
+                  {item.kode_kriteria}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {item.kriteria_nama}
+                  {item.nama_kriteria}
                 </TableCell>
                 <TableCell className="border border-black text-center">
                   {item.nama}

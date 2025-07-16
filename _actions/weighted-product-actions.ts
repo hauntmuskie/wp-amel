@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+"use server";
+
 import { db } from "@/database";
 import {
   alternatif,
@@ -9,6 +10,12 @@ import {
 } from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+
+export type WeightedProductState = {
+  success?: boolean;
+  error?: string;
+  data?: any;
+};
 
 interface AlternatifNilai {
   id: number;
@@ -26,27 +33,18 @@ interface KriteriaNormalisasi {
   bobot_normal: number;
 }
 
-export async function POST() {
+export async function calculateWeightedProduct(): Promise<WeightedProductState> {
   try {
-    // Ambil data alternatif
     const dataAlternatif = await db.select().from(alternatif);
     if (dataAlternatif.length === 0) {
-      return NextResponse.json(
-        { error: "Tidak ada data alternatif" },
-        { status: 400 }
-      );
+      return { error: "Tidak ada data alternatif" };
     }
 
-    // Ambil data kriteria
     const dataKriteria = await db.select().from(kriteria);
     if (dataKriteria.length === 0) {
-      return NextResponse.json(
-        { error: "Tidak ada data kriteria" },
-        { status: 400 }
-      );
+      return { error: "Tidak ada data kriteria" };
     }
 
-    // Ambil data penilaian
     const dataPenilaian = await db
       .select({
         alternatif_id: penilaian.alternatif_id,
@@ -58,30 +56,24 @@ export async function POST() {
       .leftJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id));
 
     if (dataPenilaian.length === 0) {
-      return NextResponse.json(
-        { error: "Tidak ada data penilaian" },
-        { status: 400 }
-      );
+      return { error: "Tidak ada data penilaian" };
     }
 
-    // Validate that we have complete data
     const expectedPenilaianCount = dataAlternatif.length * dataKriteria.length;
     if (dataPenilaian.length < expectedPenilaianCount) {
-      return NextResponse.json(
-        {
-          error: `Data penilaian tidak lengkap. Diperlukan ${expectedPenilaianCount} data, tersedia ${dataPenilaian.length}`,
-        },
-        { status: 400 }
-      );
+      return {
+        error: `Data penilaian tidak lengkap. Diperlukan ${expectedPenilaianCount} data, tersedia ${dataPenilaian.length}`,
+      };
     }
 
-    // Susun data alternatif dengan nilai kriteria
     const alternatifNilai: AlternatifNilai[] = dataAlternatif.map((alt) => {
       const nilai: { [key: string]: number } = {};
 
       dataPenilaian.forEach((pen) => {
         if (pen.alternatif_id === alt.id && pen.kode_kriteria) {
-          nilai[pen.kode_kriteria] = parseFloat(pen.nilai?.toString() || "0");
+          nilai[pen.kode_kriteria] = Number.parseFloat(
+            pen.nilai?.toString() || "0"
+          );
         }
       });
 
@@ -93,21 +85,17 @@ export async function POST() {
       };
     });
 
-    // Hitung normalisasi bobot
     const totalBobot = dataKriteria.reduce(
-      (sum, k) => sum + parseFloat(k.bobot.toString()),
+      (sum, k) => sum + Number.parseFloat(k.bobot.toString()),
       0
     );
 
     if (totalBobot <= 0) {
-      return NextResponse.json(
-        { error: "Total bobot kriteria harus lebih besar dari 0" },
-        { status: 400 }
-      );
+      return { error: "Total bobot kriteria harus lebih besar dari 0" };
     }
 
     const kriteriaNormalisasi: KriteriaNormalisasi[] = dataKriteria.map((k) => {
-      const bobotValue = parseFloat(k.bobot.toString());
+      const bobotValue = Number.parseFloat(k.bobot.toString());
       const bobotNormal = bobotValue / totalBobot;
       const bobotFinal = k.jenis === "cost" ? -bobotNormal : bobotNormal;
 
@@ -121,8 +109,6 @@ export async function POST() {
       };
     });
 
-    // Simpan normalisasi bobot ke database
-    // Hapus data lama dan insert yang baru
     await db.delete(normalisasi_bobot);
 
     for (const kn of kriteriaNormalisasi) {
@@ -133,84 +119,56 @@ export async function POST() {
       });
     }
 
-    // Hitung Vektor S
     const vektorS: { [key: number]: number } = {};
 
     alternatifNilai.forEach((alt) => {
       let s = 1;
-      console.log(`Calculating S for ${alt.nama}:`, alt.nilai);
 
       kriteriaNormalisasi.forEach((krit) => {
         const nilai = alt.nilai[krit.kode] || 0;
-        console.log(
-          `  ${krit.kode}: nilai=${nilai}, bobot_normal=${krit.bobot_normal}`
-        );
 
-        // Avoid division by zero and invalid calculations
         if (
           nilai > 0 &&
           !isNaN(krit.bobot_normal) &&
           isFinite(krit.bobot_normal)
         ) {
           const power = Math.pow(nilai, krit.bobot_normal);
-          console.log(
-            `    Math.pow(${nilai}, ${krit.bobot_normal}) = ${power}`
-          );
           s *= power;
         }
       });
 
-      // Ensure S is a valid number
       const finalS = isNaN(s) || !isFinite(s) ? 0 : s;
       vektorS[alt.id] = finalS;
-      console.log(`  Final S for ${alt.nama}: ${finalS}`);
     });
 
-    console.log("All Vektor S values:", vektorS);
-
-    // Hitung Vektor V
     const totalS = Object.values(vektorS).reduce((sum, s) => sum + s, 0);
-    console.log("Total S:", totalS);
     const vektorV: { [key: number]: number } = {};
 
-    // Avoid division by zero
     if (totalS > 0) {
       Object.keys(vektorS).forEach((altId) => {
-        const id = parseInt(altId);
+        const id = Number.parseInt(altId);
         const nilai = vektorS[id] / totalS;
-        console.log(
-          `Vektor V for alt ${id}: ${vektorS[id]} / ${totalS} = ${nilai}`
-        );
         vektorV[id] = isNaN(nilai) || !isFinite(nilai) ? 0 : nilai;
       });
     } else {
-      console.log("Total S is zero, setting all V values to 0");
-      // If totalS is 0, set all V values to 0
       Object.keys(vektorS).forEach((altId) => {
-        const id = parseInt(altId);
+        const id = Number.parseInt(altId);
         vektorV[id] = 0;
       });
     }
 
-    console.log("All Vektor V values:", vektorV);
-
-    // Buat ranking
     const ranking = Object.entries(vektorV)
       .sort(([, a], [, b]) => b - a)
       .map(([altId, nilai], index) => ({
-        alternatif_id: parseInt(altId),
-        nilai_vektor_s: vektorS[parseInt(altId)],
+        alternatif_id: Number.parseInt(altId),
+        nilai_vektor_s: vektorS[Number.parseInt(altId)],
         nilai_vektor_v: nilai,
         ranking: index + 1,
       }));
 
-    // Simpan hasil perhitungan ke database
-    // Hapus hasil sebelumnya
     await db.delete(hasil_perhitungan);
 
-    // Insert hasil baru
     for (const hasil of ranking) {
-      // Validate values before inserting
       const nilaiS =
         isNaN(hasil.nilai_vektor_s) || !isFinite(hasil.nilai_vektor_s)
           ? 0
@@ -220,12 +178,6 @@ export async function POST() {
           ? 0
           : hasil.nilai_vektor_v;
 
-      console.log(`Inserting for alternatif ${hasil.alternatif_id}:`, {
-        nilaiS: nilaiS.toString(),
-        nilaiV: nilaiV.toString(),
-        ranking: hasil.ranking,
-      });
-
       await db.insert(hasil_perhitungan).values({
         alternatif_id: hasil.alternatif_id,
         nilai_vektor_s: nilaiS.toString(),
@@ -234,7 +186,6 @@ export async function POST() {
       });
     }
 
-    // Ambil data hasil lengkap dengan nama alternatif
     const hasilLengkap = await db
       .select({
         id: hasil_perhitungan.id,
@@ -249,24 +200,64 @@ export async function POST() {
       .leftJoin(alternatif, eq(hasil_perhitungan.alternatif_id, alternatif.id))
       .orderBy(hasil_perhitungan.ranking);
 
-    // Revalidate related paths
     revalidatePath("/admin");
-    revalidatePath("/admin/data-hasil-nilai");
+    revalidatePath("/admin/data-perhitungan");
 
-    return NextResponse.json({
+    return {
       success: true,
-      normalisasi_bobot: kriteriaNormalisasi,
-      hasil_perhitungan: hasilLengkap,
-      data_input: {
-        alternatif: alternatifNilai,
-        kriteria: kriteriaNormalisasi,
+      data: {
+        normalisasi_bobot: kriteriaNormalisasi,
+        hasil_perhitungan: hasilLengkap,
+        data_input: {
+          alternatif: alternatifNilai,
+          kriteria: kriteriaNormalisasi,
+        },
       },
-    });
+    };
   } catch (error) {
     console.error("Error in WP calculation:", error);
-    return NextResponse.json(
-      { error: "Failed to calculate Weighted Product" },
-      { status: 500 }
-    );
+    return { error: "Failed to calculate Weighted Product" };
+  }
+}
+
+export async function getWeightedProductResults() {
+  try {
+    const hasilData = await db
+      .select({
+        id: hasil_perhitungan.id,
+        alternatif_id: hasil_perhitungan.alternatif_id,
+        kode_alternatif: alternatif.kode,
+        nama_alternatif: alternatif.nama,
+        nilai_vektor_s: hasil_perhitungan.nilai_vektor_s,
+        nilai_vektor_v: hasil_perhitungan.nilai_vektor_v,
+        ranking: hasil_perhitungan.ranking,
+      })
+      .from(hasil_perhitungan)
+      .leftJoin(alternatif, eq(hasil_perhitungan.alternatif_id, alternatif.id))
+      .orderBy(hasil_perhitungan.ranking);
+
+    const normalisasiData = await db
+      .select({
+        id: normalisasi_bobot.id,
+        kriteria_id: normalisasi_bobot.kriteria_id,
+        kode_kriteria: kriteria.kode,
+        nama_kriteria: kriteria.nama,
+        jenis_kriteria: kriteria.jenis,
+        bobot_awal: normalisasi_bobot.bobot_awal,
+        bobot_normal: normalisasi_bobot.bobot_normal,
+      })
+      .from(normalisasi_bobot)
+      .leftJoin(kriteria, eq(normalisasi_bobot.kriteria_id, kriteria.id));
+
+    return {
+      success: true,
+      data: {
+        hasil_perhitungan: hasilData,
+        normalisasi_bobot: normalisasiData,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching results:", error);
+    return { success: false, error: "Failed to fetch results" };
   }
 }

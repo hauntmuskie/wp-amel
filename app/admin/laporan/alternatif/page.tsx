@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getAlternatif } from "@/_actions/alternatif-actions";
 
 interface Alternatif {
   id: number;
@@ -31,9 +32,10 @@ export default function AlternatifReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/alternatif");
-        const result = await response.json();
-        setData(result);
+        const result = await getAlternatif();
+        if (result.success && result.data) {
+          setData(result.data);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

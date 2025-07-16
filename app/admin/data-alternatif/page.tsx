@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useActionState } from "react";
 import { toast } from "sonner";
 import { Database } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
@@ -20,6 +19,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  getAlternatif,
+  createAlternatif,
+  updateAlternatif,
+  deleteAlternatif,
+  type AlternatifFormState,
+} from "@/_actions/alternatif-actions";
+import { getEnums } from "@/_actions/enum-actions";
 
 interface Alternatif {
   id: number;
@@ -35,149 +42,95 @@ export default function DataAlternatifPage() {
   const [alternatifData, setAlternatifData] = useState<Alternatif[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [jenisOptions, setJenisOptions] = useState<
     Array<{ value: string; label: string }>
   >([]);
-  const router = useRouter();
 
-  const [formData, setFormData] = useState({
-    kode: "",
-    nama: "",
-    jenis: "" as "Interior" | "Eksterior" | "",
-  });
+  // Server Action states
+  const [createState, createAction, isCreating] = useActionState<
+    AlternatifFormState,
+    FormData
+  >(createAlternatif, {});
+
+  const [updateState, updateAction, isUpdating] = useActionState<
+    AlternatifFormState,
+    FormData
+  >(
+    editingItem
+      ? updateAlternatif.bind(null, editingItem.id)
+      : createAlternatif,
+    {}
+  );
 
   useEffect(() => {
     fetchAlternatif();
     fetchEnums();
   }, []);
 
-  const fetchEnums = async () => {
-    try {
-      const response = await fetch("/api/enums");
-      if (response.ok) {
-        const data = await response.json();
-        setJenisOptions(data.jenisAlternatif);
+  // Handle create action result
+  useEffect(() => {
+    if (createState.success) {
+      setIsAddOpen(false);
+      resetForm();
+      toast.success("Data alternatif berhasil ditambahkan!");
+      fetchAlternatif();
+    } else if (createState.error) {
+      if (createState.type === "info") {
+        toast.info(createState.error);
+      } else {
+        toast.error(createState.error);
       }
-    } catch (error) {
-      console.error("Error fetching enums:", error);
+    }
+  }, [createState]);
+
+  // Handle update action result
+  useEffect(() => {
+    if (updateState.success) {
+      setIsEditOpen(false);
+      resetForm();
+      toast.success("Data alternatif berhasil diperbarui!");
+      fetchAlternatif();
+    } else if (updateState.error) {
+      if (updateState.type === "info") {
+        toast.info(updateState.error);
+      } else {
+        toast.error(updateState.error);
+      }
+    }
+  }, [updateState]);
+
+  const fetchEnums = async () => {
+    const result = await getEnums();
+    if (result.success && result.data) {
+      setJenisOptions(result.data.jenisAlternatif);
     }
   };
 
   const fetchAlternatif = async () => {
-    try {
-      const response = await fetch("/api/alternatif", {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAlternatifData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching alternatif:", error);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const result = await getAlternatif();
+    if (result.success && result.data) {
+      setAlternatifData(result.data);
     }
+    setLoading(false);
   };
 
   const resetForm = () => {
-    setFormData({ kode: "", nama: "", jenis: "" });
     setEditingItem(null);
-  };
-
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/alternatif", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        await fetchAlternatif();
-        setIsAddOpen(false);
-        resetForm();
-        toast.success(data.message || "Data alternatif berhasil ditambahkan!");
-        router.refresh();
-      } else {
-        toast.error(data.error || "Gagal menambahkan data alternatif!");
-      }
-    } catch (error) {
-      console.error("Error adding alternatif:", error);
-      toast.error("Terjadi kesalahan saat menambahkan data!");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleEdit = (item: Alternatif) => {
     setEditingItem(item);
-    setFormData({
-      kode: item.kode,
-      nama: item.nama,
-      jenis: item.jenis,
-    });
     setIsEditOpen(true);
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingItem) return;
-
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/alternatif", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingItem.id, ...formData }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.type === "info") {
-          toast.info(data.error);
-        } else {
-          await fetchAlternatif();
-          toast.success(data.message || "Data alternatif berhasil diperbarui!");
-          router.refresh();
-        }
-        setIsEditOpen(false);
-        resetForm();
-      } else {
-        toast.error(data.error || "Gagal memperbarui data alternatif!");
-      }
-    } catch (error) {
-      console.error("Error updating alternatif:", error);
-      toast.error("Terjadi kesalahan saat memperbarui data!");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleDelete = async (id: number) => {
-    try {
-      const response = await fetch(`/api/alternatif?id=${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        await fetchAlternatif();
-        toast.success("Data alternatif berhasil dihapus!");
-        router.refresh();
-      } else {
-        toast.error("Gagal menghapus data alternatif!");
-      }
-    } catch (error) {
-      console.error("Error deleting alternatif:", error);
-      toast.error("Terjadi kesalahan saat menghapus data!");
+    const result = await deleteAlternatif(id);
+    if (result.success) {
+      await fetchAlternatif();
+      toast.success("Data alternatif berhasil dihapus!");
+    } else {
+      toast.error(result.error || "Gagal menghapus data alternatif!");
     }
   };
 
@@ -191,32 +144,29 @@ export default function DataAlternatifPage() {
   const AddFormContent = (
     <FormDialog
       title="Tambah Data Alternatif"
-      onSubmit={handleAdd}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget as HTMLFormElement);
+        createAction(formData);
+      }}
       onCancel={() => {
         setIsAddOpen(false);
         resetForm();
       }}
-      isSubmitting={isSubmitting}
+      isSubmitting={isCreating}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <TextField
           label="Kode Alternatif"
           id="add-kode"
-          value={formData.kode}
-          onChange={(value) => setFormData({ ...formData, kode: value })}
+          name="kode"
           placeholder="Masukkan kode alternatif"
           required
         />
         <SelectField
           label="Jenis"
           id="add-jenis"
-          value={formData.jenis}
-          onChange={(value) =>
-            setFormData({
-              ...formData,
-              jenis: value as "Interior" | "Eksterior",
-            })
-          }
+          name="jenis"
           placeholder="--Pilih Jenis Alternatif--"
           options={jenisOptions}
           required
@@ -225,8 +175,7 @@ export default function DataAlternatifPage() {
       <TextField
         label="Nama Alternatif"
         id="add-nama"
-        value={formData.nama}
-        onChange={(value) => setFormData({ ...formData, nama: value })}
+        name="nama"
         placeholder="Masukkan nama alternatif"
         required
       />
@@ -305,31 +254,30 @@ export default function DataAlternatifPage() {
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <FormDialog
           title="Ubah Data Alternatif"
-          onSubmit={handleUpdate}
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget as HTMLFormElement);
+            updateAction(formData);
+          }}
           onCancel={() => {
             setIsEditOpen(false);
             resetForm();
           }}
-          isSubmitting={isSubmitting}
+          isSubmitting={isUpdating}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <TextField
               label="Kode Alternatif"
               id="edit-kode"
-              value={formData.kode}
-              onChange={(value) => setFormData({ ...formData, kode: value })}
+              name="kode"
+              defaultValue={editingItem?.kode}
               required
             />
             <SelectField
               label="Jenis"
               id="edit-jenis"
-              value={formData.jenis}
-              onChange={(value) =>
-                setFormData({
-                  ...formData,
-                  jenis: value as "Interior" | "Eksterior",
-                })
-              }
+              name="jenis"
+              defaultValue={editingItem?.jenis}
               placeholder="--Pilih Jenis Alternatif--"
               options={jenisOptions}
               required
@@ -338,8 +286,8 @@ export default function DataAlternatifPage() {
           <TextField
             label="Nama Alternatif"
             id="edit-nama"
-            value={formData.nama}
-            onChange={(value) => setFormData({ ...formData, nama: value })}
+            name="nama"
+            defaultValue={editingItem?.nama}
             required
           />
         </FormDialog>

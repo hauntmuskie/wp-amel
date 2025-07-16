@@ -1,47 +1,44 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Home, Package, Target, ClipboardList, Calculator } from "lucide-react";
-import { PageHeader } from "./_components/page-header";
-import { DataTableContainer } from "./_components/data-table-container";
-import { DataLoadingStates } from "./_components/data-loading-states";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useState, useEffect } from "react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Home, Package, Target, ClipboardList, Calculator } from "lucide-react"
+import { PageHeader } from "./_components/page-header"
+import { DataTableContainer } from "./_components/data-table-container"
+import { DataLoadingStates } from "./_components/data-loading-states"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { getAlternatif } from "@/_actions/alternatif-actions"
+import { getKriteria } from "@/_actions/kriteria-actions"
+import { getSubKriteria } from "@/_actions/sub-kriteria-actions"
+import { getWeightedProductResults } from "@/_actions/weighted-product-actions"
 
 interface DashboardStats {
-  alternatif: number;
-  kriteria: number;
-  subKriteria: number;
-  penilaian: number;
+  alternatif: number
+  kriteria: number
+  subKriteria: number
+  penilaian: number
 }
 
 interface HasilPerhitungan {
-  id: number;
-  alternatif_id: number;
-  kode_alternatif: string;
-  nama_alternatif: string;
-  nilai_vektor_s: string;
-  nilai_vektor_v: string;
-  ranking: number;
+  id: number
+  alternatif_id: number
+  kode_alternatif: string | null
+  nama_alternatif: string | null
+  nilai_vektor_s: string
+  nilai_vektor_v: string
+  ranking: number
 }
 
 interface StatCard {
-  title: string;
-  value: number;
-  description: string;
-  icon: typeof Package;
+  title: string
+  value: number
+  description: string
+  icon: typeof Package
   color: {
-    bg: string;
-    text: string;
-    iconBg: string;
-  };
+    bg: string
+    text: string
+    iconBg: string
+  }
 }
 
 export default function BerandaPage() {
@@ -50,58 +47,55 @@ export default function BerandaPage() {
     kriteria: 0,
     subKriteria: 0,
     penilaian: 0,
-  });
-  const [rankingData, setRankingData] = useState<HasilPerhitungan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [rankingLoading, setRankingLoading] = useState(true);
+  })
+  const [rankingData, setRankingData] = useState<HasilPerhitungan[]>([])
+  const [loading, setLoading] = useState(true)
+  const [rankingLoading, setRankingLoading] = useState(true)
 
   useEffect(() => {
-    fetchStats();
-    fetchRankingData();
-  }, []);
+    fetchStats()
+    fetchRankingData()
+  }, [])
 
   const fetchStats = async () => {
     try {
-      const [altRes, kritRes, subKritRes] = await Promise.all([
-        fetch("/api/alternatif"),
-        fetch("/api/kriteria"),
-        fetch("/api/sub-kriteria"),
-      ]);
+      const [altResult, kritResult, subKritResult] = await Promise.all([
+        getAlternatif(),
+        getKriteria(),
+        getSubKriteria(),
+      ])
 
-      const [altData, kritData, subKritData] = await Promise.all([
-        altRes.json(),
-        kritRes.json(),
-        subKritRes.json(),
-      ]);
+      const altData = altResult.success ? altResult.data : []
+      const kritData = kritResult.success ? kritResult.data : []
+      const subKritData = subKritResult.success ? subKritResult.data : []
 
-      const penilaianCount = altData.length;
+      const penilaianCount = altData?.length || 0
 
       setStats({
-        alternatif: altData.length || 0,
-        kriteria: kritData.length || 0,
-        subKriteria: subKritData.length || 0,
-        penilaian: penilaianCount || 0,
-      });
+        alternatif: altData?.length || 0,
+        kriteria: kritData?.length || 0,
+        subKriteria: subKritData?.length || 0,
+        penilaian: penilaianCount,
+      })
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("Error fetching stats:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const fetchRankingData = async () => {
     try {
-      const response = await fetch("/api/weighted-product/results");
-      if (response.ok) {
-        const data = await response.json();
-        setRankingData(data.hasil_perhitungan || []);
+      const result = await getWeightedProductResults()
+      if (result.success && result.data) {
+        setRankingData(result.data.hasil_perhitungan || [])
       }
     } catch (error) {
-      console.error("Error fetching ranking data:", error);
+      console.error("Error fetching ranking data:", error)
     } finally {
-      setRankingLoading(false);
+      setRankingLoading(false)
     }
-  };
+  }
 
   const statCards: StatCard[] = [
     {
@@ -148,28 +142,16 @@ export default function BerandaPage() {
         iconBg: "bg-orange-100",
       },
     },
-  ];
+  ]
 
-  const StatCard = ({
-    title,
-    value,
-    description,
-    icon: Icon,
-    color,
-  }: StatCard) => (
+  const StatCard = ({ title, value, description, icon: Icon, color }: StatCard) => (
     <Card className="transition-all duration-200 hover:shadow-lg">
       <CardContent className="py-3 px-4">
         <div className="flex items-center justify-between gap-2 min-h-0">
           <div className="flex-1 min-w-0">
-            <p className="text-gray-600 text-md font-medium leading-tight truncate">
-              {title}
-            </p>
-            <p className={`text-3xl font-bold ${color.text} leading-tight`}>
-              {loading ? "..." : value}
-            </p>
-            <p className="text-gray-500 text-xs mt-0.5 leading-tight truncate">
-              {description}
-            </p>
+            <p className="text-gray-600 text-md font-medium leading-tight truncate">{title}</p>
+            <p className={`text-3xl font-bold ${color.text} leading-tight`}>{loading ? "..." : value}</p>
+            <p className="text-gray-500 text-xs mt-0.5 leading-tight truncate">{description}</p>
           </div>
           <div className={`${color.iconBg} p-2 rounded-full flex-shrink-0`}>
             <Icon className={`h-5 w-5 ${color.text}`} />
@@ -177,7 +159,7 @@ export default function BerandaPage() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 
   return (
     <div className="p-6 space-y-6">
@@ -188,10 +170,7 @@ export default function BerandaPage() {
         <div className="flex items-center justify-center">
           <div>
             <h2 className="text-xl font-bold mb-2 text-center">
-              <span className="block">
-                Penerapan Metode Weighted Product (WP) Dalam Pemilihan Cat
-                Dinding Terbaik
-              </span>
+              <span className="block">Penerapan Metode Weighted Product (WP) Dalam Pemilihan Cat Dinding Terbaik</span>
               <span className="block">Pada TB Raja Bangunan</span>
             </h2>
           </div>
@@ -234,18 +213,16 @@ export default function BerandaPage() {
                   .map((item, index) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell className="font-medium">
-                        {item.kode_alternatif}
-                      </TableCell>
+                      <TableCell className="font-medium">{item.kode_alternatif}</TableCell>
                       <TableCell>{item.nama_alternatif}</TableCell>
                       <TableCell className="text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          {parseFloat(item.nilai_vektor_s).toFixed(5)}
+                          {Number.parseFloat(item.nilai_vektor_s).toFixed(5)}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {parseFloat(item.nilai_vektor_v).toFixed(5)}
+                          {Number.parseFloat(item.nilai_vektor_v).toFixed(5)}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
@@ -254,10 +231,10 @@ export default function BerandaPage() {
                             item.ranking === 1
                               ? "bg-yellow-100 text-yellow-800"
                               : item.ranking === 2
-                              ? "bg-gray-100 text-gray-800"
-                              : item.ranking === 3
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-gray-100 text-gray-800"
+                                ? "bg-gray-100 text-gray-800"
+                                : item.ranking === 3
+                                  ? "bg-orange-100 text-orange-800"
+                                  : "bg-gray-100 text-gray-800"
                           }`}
                         >
                           {item.ranking}
@@ -274,23 +251,17 @@ export default function BerandaPage() {
       {rankingData.length > 0 && (
         <Card className="border-x border-y">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-800">
-              🏆 Rekomendasi Terbaik
-            </CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-800">🏆 Rekomendasi Terbaik</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-gray-700">
-              Berdasarkan perhitungan Weighted Product, cat dinding terbaik
-              adalah{" "}
+              Berdasarkan perhitungan Weighted Product, cat dinding terbaik adalah{" "}
               <span className="font-bold text-green-700">
                 {rankingData.find((h) => h.ranking === 1)?.nama_alternatif}
               </span>{" "}
               dengan skor akhir{" "}
               <span className="font-bold text-green-700">
-                {parseFloat(
-                  rankingData.find((h) => h.ranking === 1)?.nilai_vektor_v ||
-                    "0"
-                ).toFixed(5)}
+                {Number.parseFloat(rankingData.find((h) => h.ranking === 1)?.nilai_vektor_v || "0").toFixed(5)}
               </span>
               .
             </p>
@@ -298,5 +269,5 @@ export default function BerandaPage() {
         </Card>
       )}
     </div>
-  );
+  )
 }
