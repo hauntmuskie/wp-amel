@@ -9,8 +9,8 @@
 -- DELETE FROM sub_kriteria;
 -- DELETE FROM kriteria;
 -- DELETE FROM alternatif;
-
 -- ========================================
+-- 
 -- ALTERNATIF DATA (Paint Brands)
 -- ========================================
 INSERT INTO alternatif (kode, nama, jenis) VALUES
@@ -147,8 +147,8 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A2'),
-    (SELECT id FROM kriteria WHERE kode = 'C6'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '3'),
+    (SELECT id FROM kriteria WHERE kode = 'C5'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '3'),
     '3'
 );
 
@@ -180,8 +180,8 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A3'),
-    (SELECT id FROM kriteria WHERE kode = 'C6'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '5'),
+    (SELECT id FROM kriteria WHERE kode = 'C5'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '5'),
     '5'
 );
 
@@ -213,8 +213,8 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A4'),
-    (SELECT id FROM kriteria WHERE kode = 'C6'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '2'),
+    (SELECT id FROM kriteria WHERE kode = 'C5'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '2'),
     '2'
 );
 
@@ -246,8 +246,8 @@ INSERT INTO penilaian (alternatif_id, kriteria_id, sub_kriteria_id, nilai) VALUE
 ),
 (
     (SELECT id FROM alternatif WHERE kode = 'A5'),
-    (SELECT id FROM kriteria WHERE kode = 'C6'),
-    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C6') AND bobot = '3'),
+    (SELECT id FROM kriteria WHERE kode = 'C5'),
+    (SELECT id FROM sub_kriteria WHERE kriteria_id = (SELECT id FROM kriteria WHERE kode = 'C5') AND bobot = '3'),
     '3'
 );
 
