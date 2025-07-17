@@ -4,7 +4,7 @@ import mysql from "mysql2/promise";
 
 import * as schema from "./schema";
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd = process.env.IS_PROD === "true";
 
 // Development database configuration (MySQL)
 const devDb = () => {

@@ -8,6 +8,7 @@ import {
   mysqlEnum,
 } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
+import type { InferSelectModel, InferInsertModel } from "drizzle-orm";
 
 export const alternatif = mysqlTable("alternatif", {
   id: int("id").primaryKey().autoincrement(),
@@ -28,7 +29,7 @@ export const kriteria = mysqlTable("kriteria", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-export const sub_kriteria = mysqlTable("sub_kriteria", {
+export const subKriteria = mysqlTable("sub_kriteria", {
   id: int("id").primaryKey().autoincrement(),
   kriteria_id: int("kriteria_id").notNull(),
   nama: varchar("nama", { length: 255 }).notNull(),
@@ -48,7 +49,7 @@ export const penilaian = mysqlTable("penilaian", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-export const hasil_perhitungan = mysqlTable("hasil_perhitungan", {
+export const hasilPerhitungan = mysqlTable("hasil_perhitungan", {
   id: int("id").primaryKey().autoincrement(),
   alternatif_id: int("alternatif_id").notNull(),
   nilai_vektor_s: decimal("nilai_vektor_s", {
@@ -64,7 +65,7 @@ export const hasil_perhitungan = mysqlTable("hasil_perhitungan", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-export const normalisasi_bobot = mysqlTable("normalisasi_bobot", {
+export const normalisasiBobot = mysqlTable("normalisasi_bobot", {
   id: int("id").primaryKey().autoincrement(),
   kriteria_id: int("kriteria_id").notNull(),
   bobot_awal: decimal("bobot_awal", { precision: 5, scale: 2 }).notNull(),
@@ -75,25 +76,22 @@ export const normalisasi_bobot = mysqlTable("normalisasi_bobot", {
 
 export const alternatifRelations = relations(alternatif, ({ many }) => ({
   penilaian: many(penilaian),
-  hasil_perhitungan: many(hasil_perhitungan),
+  hasilPerhitungan: many(hasilPerhitungan),
 }));
 
 export const kriteriaRelations = relations(kriteria, ({ many }) => ({
-  sub_kriteria: many(sub_kriteria),
+  subKriteria: many(subKriteria),
   penilaian: many(penilaian),
-  normalisasi_bobot: many(normalisasi_bobot),
+  normalisasiBobot: many(normalisasiBobot),
 }));
 
-export const subKriteriaRelations = relations(
-  sub_kriteria,
-  ({ one, many }) => ({
-    kriteria: one(kriteria, {
-      fields: [sub_kriteria.kriteria_id],
-      references: [kriteria.id],
-    }),
-    penilaian: many(penilaian),
-  })
-);
+export const subKriteriaRelations = relations(subKriteria, ({ one, many }) => ({
+  kriteria: one(kriteria, {
+    fields: [subKriteria.kriteria_id],
+    references: [kriteria.id],
+  }),
+  penilaian: many(penilaian),
+}));
 
 export const penilaianRelations = relations(penilaian, ({ one }) => ({
   alternatif: one(alternatif, {
@@ -104,28 +102,46 @@ export const penilaianRelations = relations(penilaian, ({ one }) => ({
     fields: [penilaian.kriteria_id],
     references: [kriteria.id],
   }),
-  sub_kriteria: one(sub_kriteria, {
+  subKriteria: one(subKriteria, {
     fields: [penilaian.sub_kriteria_id],
-    references: [sub_kriteria.id],
+    references: [subKriteria.id],
   }),
 }));
 
 export const hasilPerhitunganRelations = relations(
-  hasil_perhitungan,
+  hasilPerhitungan,
   ({ one }) => ({
     alternatif: one(alternatif, {
-      fields: [hasil_perhitungan.alternatif_id],
+      fields: [hasilPerhitungan.alternatif_id],
       references: [alternatif.id],
     }),
   })
 );
 
 export const normalisasiBobotRelations = relations(
-  normalisasi_bobot,
+  normalisasiBobot,
   ({ one }) => ({
     kriteria: one(kriteria, {
-      fields: [normalisasi_bobot.kriteria_id],
+      fields: [normalisasiBobot.kriteria_id],
       references: [kriteria.id],
     }),
   })
 );
+
+export type alternatif = InferSelectModel<typeof alternatif>;
+export type NewAlternatif = InferInsertModel<typeof alternatif>;
+
+export type Kriteria = InferSelectModel<typeof kriteria>;
+export type NewKriteria = InferInsertModel<typeof kriteria>;
+
+export type SubKriteria = InferSelectModel<typeof subKriteria>;
+export type NewSubKriteria = InferInsertModel<typeof subKriteria>;
+
+export type Penilaian = InferSelectModel<typeof penilaian>;
+export type NewPenilaian = InferInsertModel<typeof penilaian>;
+
+export type HasilPerhitungan = InferSelectModel<typeof hasilPerhitungan>;
+export type NewHasilPerhitungan = InferInsertModel<typeof hasilPerhitungan>;
+
+export type NormalisasiBobot = InferSelectModel<typeof normalisasiBobot>;
+export type NewNormalisasiBobot = InferInsertModel<typeof normalisasiBobot>;
