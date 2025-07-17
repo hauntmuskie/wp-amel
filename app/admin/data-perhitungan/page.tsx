@@ -16,6 +16,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+interface Kriteria {
+  id: number;
+  kode: string;
+  nama: string;
+  bobot: string;
+  jenis: string;
+}
+
 interface NormalisasiBobot {
   id: number;
   kriteria_id: number;
@@ -55,7 +63,7 @@ export default function DataHasilNilaiPage() {
       const response = await fetch("/api/kriteria");
       if (response.ok) {
         const data = await response.json();
-        const codes = data.map((k: any) => k.kode).sort();
+        const codes = data.map((k: Kriteria) => k.kode).sort();
         setKriteriaCodes(codes);
       }
     } catch (error) {

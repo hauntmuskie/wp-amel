@@ -162,9 +162,6 @@ export default function DataPenilaianPage() {
     setIsSubmitting(true);
 
     try {
-      const kriteriaMap = new Map(kriteriaData.map((k) => [k.kode, k.id]));
-
-      // Build penilaian array dynamically based on existing kriteria
       const penilaianArray = kriteriaData
         .map((kriteria) => {
           const formFieldKey =
@@ -230,8 +227,13 @@ export default function DataPenilaianPage() {
     );
 
     // Build form data dynamically based on existing kriteria
-    const formUpdate: any = {
+    const formUpdate = {
       alternatif_id: item.alternatif_id.toString(),
+      c1_sub_kriteria_id: "",
+      c2_sub_kriteria_id: "",
+      c3_sub_kriteria_id: "",
+      c4_sub_kriteria_id: "",
+      c5_sub_kriteria_id: "",
     };
 
     kriteriaData.forEach((kriteria) => {
@@ -239,7 +241,7 @@ export default function DataPenilaianPage() {
       const penilaianForKriteria = alternatifPenilaian.find(
         (p) => p.kode_kriteria === kriteria.kode
       );
-      formUpdate[formFieldKey] =
+      (formUpdate as Record<string, string>)[formFieldKey] =
         penilaianForKriteria?.sub_kriteria_id.toString() || "";
     });
 
@@ -260,8 +262,6 @@ export default function DataPenilaianPage() {
       for (const pen of alternatifPenilaian) {
         await fetch(`/api/penilaian?id=${pen.id}`, { method: "DELETE" });
       }
-
-      const kriteriaMap = new Map(kriteriaData.map((k) => [k.kode, k.id]));
 
       // Build penilaian array dynamically based on existing kriteria
       const penilaianArray = kriteriaData
