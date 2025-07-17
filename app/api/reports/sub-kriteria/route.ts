@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/database";
+import { db } from "@/database/dev";
 import { sub_kriteria, kriteria } from "@/database/schema";
 import { eq, desc } from "drizzle-orm";
 

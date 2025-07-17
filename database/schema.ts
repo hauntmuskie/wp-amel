@@ -9,7 +9,6 @@ import {
 } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
-// Tabel Alternatif - Data alternatif cat dinding
 export const alternatif = mysqlTable("alternatif", {
   id: int("id").primaryKey().autoincrement(),
   kode: varchar("kode", { length: 10 }).notNull().unique(),
@@ -19,7 +18,6 @@ export const alternatif = mysqlTable("alternatif", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-// Tabel Kriteria - Data kriteria penilaian
 export const kriteria = mysqlTable("kriteria", {
   id: int("id").primaryKey().autoincrement(),
   kode: varchar("kode", { length: 10 }).notNull().unique(),
@@ -30,7 +28,6 @@ export const kriteria = mysqlTable("kriteria", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-// Tabel Sub Kriteria - Data sub kriteria untuk setiap kriteria
 export const sub_kriteria = mysqlTable("sub_kriteria", {
   id: int("id").primaryKey().autoincrement(),
   kriteria_id: int("kriteria_id").notNull(),
@@ -41,7 +38,6 @@ export const sub_kriteria = mysqlTable("sub_kriteria", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-// Tabel Penilaian - Data penilaian alternatif berdasarkan kriteria
 export const penilaian = mysqlTable("penilaian", {
   id: int("id").primaryKey().autoincrement(),
   alternatif_id: int("alternatif_id").notNull(),
@@ -52,7 +48,6 @@ export const penilaian = mysqlTable("penilaian", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-// Tabel Hasil Perhitungan - Data hasil perhitungan WP
 export const hasil_perhitungan = mysqlTable("hasil_perhitungan", {
   id: int("id").primaryKey().autoincrement(),
   alternatif_id: int("alternatif_id").notNull(),
@@ -69,7 +64,6 @@ export const hasil_perhitungan = mysqlTable("hasil_perhitungan", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-// Tabel Normalisasi Bobot - Data normalisasi bobot kriteria
 export const normalisasi_bobot = mysqlTable("normalisasi_bobot", {
   id: int("id").primaryKey().autoincrement(),
   kriteria_id: int("kriteria_id").notNull(),
@@ -79,7 +73,6 @@ export const normalisasi_bobot = mysqlTable("normalisasi_bobot", {
   updated_at: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
-// Relations
 export const alternatifRelations = relations(alternatif, ({ many }) => ({
   penilaian: many(penilaian),
   hasil_perhitungan: many(hasil_perhitungan),
@@ -136,22 +129,3 @@ export const normalisasiBobotRelations = relations(
     }),
   })
 );
-
-// Export types
-export type Alternatif = typeof alternatif.$inferSelect;
-export type NewAlternatif = typeof alternatif.$inferInsert;
-
-export type Kriteria = typeof kriteria.$inferSelect;
-export type NewKriteria = typeof kriteria.$inferInsert;
-
-export type SubKriteria = typeof sub_kriteria.$inferSelect;
-export type NewSubKriteria = typeof sub_kriteria.$inferInsert;
-
-export type Penilaian = typeof penilaian.$inferSelect;
-export type NewPenilaian = typeof penilaian.$inferInsert;
-
-export type HasilPerhitungan = typeof hasil_perhitungan.$inferSelect;
-export type NewHasilPerhitungan = typeof hasil_perhitungan.$inferInsert;
-
-export type NormalisasiBobot = typeof normalisasi_bobot.$inferSelect;
-export type NewNormalisasiBobot = typeof normalisasi_bobot.$inferInsert;

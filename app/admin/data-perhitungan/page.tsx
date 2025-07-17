@@ -58,7 +58,7 @@ export default function DataHasilNilaiPage() {
   const fetchKriteria = async () => {
     const result = await getKriteria();
     if (result.success && result.data) {
-      const codes = result.data.map((k: any) => k.kode).sort();
+      const codes = result.data.map((k: { kode: string }) => k.kode).sort();
       setKriteriaCodes(codes);
     }
   };

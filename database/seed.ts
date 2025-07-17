@@ -1,4 +1,4 @@
-import { db } from "./index";
+import { db } from "./dev";
 import {
   alternatif,
   kriteria,

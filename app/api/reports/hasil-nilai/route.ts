@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/database";
+import { db } from "@/database/dev";
 import { hasil_perhitungan, alternatif } from "@/database/schema";
 import { eq } from "drizzle-orm";
 

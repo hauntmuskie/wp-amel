@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useActionState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Users } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
@@ -20,12 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { 
-  getSubKriteria, 
-  createSubKriteria, 
-  updateSubKriteria, 
+import {
+  getSubKriteria,
+  createSubKriteria,
+  updateSubKriteria,
   deleteSubKriteria,
-  SubKriteriaFormState 
+  SubKriteriaFormState,
 } from "@/_actions/sub-kriteria-actions";
 import { getKriteria } from "@/_actions/kriteria-actions";
 
@@ -55,11 +54,19 @@ export default function DataSubKriteriaPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Server Action states
-  const [createState, createAction, isCreating] = useActionState<SubKriteriaFormState, FormData>(createSubKriteria, {});
+  const [createState, createAction, isCreating] = useActionState<
+    SubKriteriaFormState,
+    FormData
+  >(createSubKriteria, {});
 
-  const [updateState, updateAction, isUpdating] = useActionState<SubKriteriaFormState, FormData>(
-    editingItem ? updateSubKriteria.bind(null, editingItem.id) : createSubKriteria,
-    {},
+  const [updateState, updateAction, isUpdating] = useActionState<
+    SubKriteriaFormState,
+    FormData
+  >(
+    editingItem
+      ? updateSubKriteria.bind(null, editingItem.id)
+      : createSubKriteria,
+    {}
   );
 
   useEffect(() => {
@@ -243,7 +250,9 @@ export default function DataSubKriteriaPage() {
                       </TableCell>
                       <TableCell>{item.nama_kriteria}</TableCell>
                       <TableCell>{item.nama}</TableCell>
-                      <TableCell>{Math.round(parseFloat(item.bobot))}</TableCell>
+                      <TableCell>
+                        {Math.round(parseFloat(item.bobot))}
+                      </TableCell>
                       <TableCell>{item.keterangan || "-"}</TableCell>
                       <TableCell>
                         <ActionButtons
@@ -294,7 +303,11 @@ export default function DataSubKriteriaPage() {
               max="5"
               step="1"
               placeholder="Masukkan bobot 1-5"
-              defaultValue={editingItem ? Math.round(parseFloat(editingItem.bobot)).toString() : ""}
+              defaultValue={
+                editingItem
+                  ? Math.round(parseFloat(editingItem.bobot)).toString()
+                  : ""
+              }
               required
             />
           </div>

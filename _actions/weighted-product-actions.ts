@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/database";
+import db from "@/database/dev";
 import {
   alternatif,
   kriteria,

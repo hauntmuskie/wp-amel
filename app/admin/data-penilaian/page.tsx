@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ClipboardList } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
@@ -24,6 +23,7 @@ import {
   getPenilaian,
   createPenilaian,
   deletePenilaianByAlternatif,
+  PenilaianFormState,
 } from "@/_actions/penilaian-actions";
 import { getAlternatif } from "@/_actions/alternatif-actions";
 import { getKriteria } from "@/_actions/kriteria-actions";
@@ -76,7 +76,6 @@ export default function DataPenilaianPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter();
 
   const [formData, setFormData] = useState({
     alternatif_id: "",
@@ -98,7 +97,16 @@ export default function DataPenilaianPage() {
     try {
       const result = await getPenilaian();
       if (result.success && result.data) {
-        setPenilaianData(result.data);
+        // Map null string fields to empty string
+        const mappedData = result.data.map((item: any) => ({
+          ...item,
+          kode_alternatif: item.kode_alternatif ?? "",
+          nama_alternatif: item.nama_alternatif ?? "",
+          kode_kriteria: item.kode_kriteria ?? "",
+          nama_kriteria: item.nama_kriteria ?? "",
+          nama_sub_kriteria: item.nama_sub_kriteria ?? "",
+        }));
+        setPenilaianData(mappedData);
       }
     } catch (error) {
       console.error("Error fetching penilaian:", error);
@@ -133,7 +141,14 @@ export default function DataPenilaianPage() {
     try {
       const result = await getSubKriteria();
       if (result.success && result.data) {
-        setSubKriteriaData(result.data);
+        // Map null string fields to empty string
+        const mappedData = result.data.map((item: any) => ({
+          ...item,
+          keterangan: item.keterangan ?? "",
+          kode_kriteria: item.kode_kriteria ?? "",
+          nama_kriteria: item.nama_kriteria ?? "",
+        }));
+        setSubKriteriaData(mappedData);
       }
     } catch (error) {
       console.error("Error fetching sub kriteria:", error);
@@ -164,7 +179,7 @@ export default function DataPenilaianPage() {
 
     try {
       const alternatif_id = parseInt(formData.alternatif_id);
-      const promises = [];
+      const promises: Promise<PenilaianFormState>[] = [];
 
       // Create penilaian for each kriteria
       kriteriaData.forEach((kriteria) => {
@@ -189,7 +204,7 @@ export default function DataPenilaianPage() {
         }
       });
 
-      const results = await Promise.all(promises);
+      const results: PenilaianFormState[] = await Promise.all(promises);
       const hasError = results.some((result) => !result.success);
 
       if (hasError) {
@@ -215,9 +230,13 @@ export default function DataPenilaianPage() {
       (p) => p.alternatif_id === item.alternatif_id
     );
 
-    // Build form data dynamically based on existing kriteria
-    const formUpdate: any = {
+    const formUpdate = {
       alternatif_id: item.alternatif_id.toString(),
+      c1_sub_kriteria_id: "",
+      c2_sub_kriteria_id: "",
+      c3_sub_kriteria_id: "",
+      c4_sub_kriteria_id: "",
+      c5_sub_kriteria_id: "",
     };
 
     kriteriaData.forEach((kriteria) => {
@@ -225,8 +244,9 @@ export default function DataPenilaianPage() {
         (p) => p.kriteria_id === kriteria.id
       );
       if (penilaianItem) {
-        formUpdate[`${kriteria.kode.toLowerCase()}_sub_kriteria_id`] =
-          penilaianItem.sub_kriteria_id.toString();
+        formUpdate[
+          `${kriteria.kode.toLowerCase()}_sub_kriteria_id` as keyof typeof formUpdate
+        ] = penilaianItem.sub_kriteria_id.toString();
       }
     });
 
@@ -245,7 +265,7 @@ export default function DataPenilaianPage() {
       await deletePenilaianByAlternatif(editingItem.alternatif_id);
 
       const alternatif_id = parseInt(formData.alternatif_id);
-      const promises = [];
+      const promises: Promise<PenilaianFormState>[] = [];
 
       // Create new penilaian for each kriteria
       kriteriaData.forEach((kriteria) => {
@@ -270,7 +290,7 @@ export default function DataPenilaianPage() {
         }
       });
 
-      const results = await Promise.all(promises);
+      const results: PenilaianFormState[] = await Promise.all(promises);
       const hasError = results.some((result) => !result.success);
 
       if (hasError) {
@@ -407,7 +427,11 @@ export default function DataPenilaianPage() {
 
         <div className="p-4">
           {loading ? (
-            <DataLoadingStates />
+            <DataLoadingStates
+              loading={loading}
+              hasData={penilaianData.length > 0}
+              colSpan={kriteriaData.length + 4}
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table className="w-full table-auto">
@@ -491,7 +515,6 @@ export default function DataPenilaianPage() {
             }
             placeholder="--Pilih Alternatif--"
             options={alternatifOptions}
-            disabled
             required
           />
 

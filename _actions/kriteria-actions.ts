@@ -1,6 +1,6 @@
 "use server";
 
-import { db } from "@/database";
+import db from "@/database/dev";
 import { kriteria } from "@/database/schema";
 import { eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/database";
+import { db } from "@/database/dev";
 import { alternatif } from "@/database/schema";
 
 export async function GET() {
