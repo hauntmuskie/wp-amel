@@ -5,7 +5,8 @@ import {
   penilaian,
   alternatif,
   kriteria,
-  sub_kriteria,
+  subKriteria,
+  type NewPenilaian,
 } from "@/database/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -23,7 +24,7 @@ export async function getPenilaian() {
       .from(penilaian)
       .leftJoin(alternatif, eq(penilaian.alternatif_id, alternatif.id))
       .leftJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id))
-      .leftJoin(sub_kriteria, eq(penilaian.sub_kriteria_id, sub_kriteria.id));
+      .leftJoin(subKriteria, eq(penilaian.sub_kriteria_id, subKriteria.id));
 
     return { success: true, data };
   } catch (error) {
@@ -55,12 +56,14 @@ export async function createPenilaian(
       };
     }
 
-    await db.insert(penilaian).values({
+    const newPenilaian: NewPenilaian = {
       alternatif_id,
       kriteria_id,
       sub_kriteria_id,
       nilai,
-    });
+    };
+
+    await db.insert(penilaian).values(newPenilaian);
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-penilaian");

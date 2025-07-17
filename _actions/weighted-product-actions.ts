@@ -5,8 +5,10 @@ import {
   alternatif,
   kriteria,
   penilaian,
-  hasil_perhitungan,
-  normalisasi_bobot,
+  hasilPerhitungan,
+  normalisasiBobot,
+  type NewHasilPerhitungan,
+  type NewNormalisasiBobot,
 } from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -104,14 +106,15 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
       };
     });
 
-    await db.delete(normalisasi_bobot);
+    await db.delete(normalisasiBobot);
 
     for (const kn of kriteriaNormalisasi) {
-      await db.insert(normalisasi_bobot).values({
+      const newNormalisasi: NewNormalisasiBobot = {
         kriteria_id: kn.id,
         bobot_awal: kn.bobot.toString(),
         bobot_normal: kn.bobot_normal.toString(),
-      });
+      };
+      await db.insert(normalisasiBobot).values(newNormalisasi);
     }
 
     const vektorS: { [key: number]: number } = {};
@@ -161,7 +164,7 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
         ranking: index + 1,
       }));
 
-    await db.delete(hasil_perhitungan);
+    await db.delete(hasilPerhitungan);
 
     for (const hasil of ranking) {
       const nilaiS =
@@ -173,19 +176,21 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
           ? 0
           : hasil.nilai_vektor_v;
 
-      await db.insert(hasil_perhitungan).values({
+      const newHasil: NewHasilPerhitungan = {
         alternatif_id: hasil.alternatif_id,
         nilai_vektor_s: nilaiS.toString(),
         nilai_vektor_v: nilaiV.toString(),
         ranking: hasil.ranking,
-      });
+      };
+
+      await db.insert(hasilPerhitungan).values(newHasil);
     }
 
     const hasilLengkap = await db
       .select()
-      .from(hasil_perhitungan)
-      .leftJoin(alternatif, eq(hasil_perhitungan.alternatif_id, alternatif.id))
-      .orderBy(hasil_perhitungan.ranking);
+      .from(hasilPerhitungan)
+      .leftJoin(alternatif, eq(hasilPerhitungan.alternatif_id, alternatif.id))
+      .orderBy(hasilPerhitungan.ranking);
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-perhitungan");
@@ -211,14 +216,14 @@ export async function getWeightedProductResults() {
   try {
     const hasilData = await db
       .select()
-      .from(hasil_perhitungan)
-      .leftJoin(alternatif, eq(hasil_perhitungan.alternatif_id, alternatif.id))
-      .orderBy(hasil_perhitungan.ranking);
+      .from(hasilPerhitungan)
+      .leftJoin(alternatif, eq(hasilPerhitungan.alternatif_id, alternatif.id))
+      .orderBy(hasilPerhitungan.ranking);
 
     const normalisasiData = await db
       .select()
-      .from(normalisasi_bobot)
-      .leftJoin(kriteria, eq(normalisasi_bobot.kriteria_id, kriteria.id));
+      .from(normalisasiBobot)
+      .leftJoin(kriteria, eq(normalisasiBobot.kriteria_id, kriteria.id));
 
     return {
       success: true,

@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/database";
-import { sub_kriteria, kriteria } from "@/database/schema";
+import { subKriteria, kriteria, type NewSubKriteria } from "@/database/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -15,8 +15,8 @@ export async function getSubKriteria() {
   try {
     const data = await db
       .select()
-      .from(sub_kriteria)
-      .leftJoin(kriteria, eq(sub_kriteria.kriteria_id, kriteria.id));
+      .from(subKriteria)
+      .leftJoin(kriteria, eq(subKriteria.kriteria_id, kriteria.id));
 
     return { success: true, data };
   } catch (error) {
@@ -30,22 +30,35 @@ export async function createSubKriteria(
   formData: FormData
 ): Promise<SubKriteriaFormState> {
   try {
-    const kriteria_id = Number.parseInt(formData.get("kriteria_id") as string);
-    const nama = formData.get("nama") as string;
-    const bobot = formData.get("bobot") as string;
-    const keterangan = formData.get("keterangan") as string;
+    const kriteria_id = formData.get("kriteria_id");
+    const nama = formData.get("nama");
+    const bobot = formData.get("bobot");
+    const keterangan = formData.get("keterangan");
 
     if (!kriteria_id || !nama || !bobot) {
       return { error: "Field kriteria, nama, dan bobot harus diisi!" };
     }
 
+    if (
+      typeof kriteria_id !== "string" ||
+      typeof nama !== "string" ||
+      typeof bobot !== "string"
+    ) {
+      return { error: "Data tidak valid!" };
+    }
+
+    const parsedKriteriaId = Number.parseInt(kriteria_id);
+    if (isNaN(parsedKriteriaId)) {
+      return { error: "ID kriteria tidak valid!" };
+    }
+
     const existing = await db
       .select()
-      .from(sub_kriteria)
+      .from(subKriteria)
       .where(
         and(
-          eq(sub_kriteria.kriteria_id, kriteria_id),
-          eq(sub_kriteria.nama, nama)
+          eq(subKriteria.kriteria_id, parsedKriteriaId),
+          eq(subKriteria.nama, nama)
         )
       );
 
@@ -53,12 +66,14 @@ export async function createSubKriteria(
       return { error: "Nama sub kriteria sudah ada dalam kriteria ini!" };
     }
 
-    await db.insert(sub_kriteria).values({
-      kriteria_id,
+    const newSubKriteria: NewSubKriteria = {
+      kriteria_id: parsedKriteriaId,
       nama,
       bobot,
-      keterangan,
-    });
+      keterangan: typeof keterangan === "string" ? keterangan : null,
+    };
+
+    await db.insert(subKriteria).values(newSubKriteria);
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-sub-kriteria");
@@ -77,22 +92,35 @@ export async function updateSubKriteria(
   formData: FormData
 ): Promise<SubKriteriaFormState> {
   try {
-    const kriteria_id = Number.parseInt(formData.get("kriteria_id") as string);
-    const nama = formData.get("nama") as string;
-    const bobot = formData.get("bobot") as string;
-    const keterangan = formData.get("keterangan") as string;
+    const kriteria_id = formData.get("kriteria_id");
+    const nama = formData.get("nama");
+    const bobot = formData.get("bobot");
+    const keterangan = formData.get("keterangan");
 
     if (!kriteria_id || !nama || !bobot) {
       return { error: "Field kriteria, nama, dan bobot harus diisi!" };
     }
 
+    if (
+      typeof kriteria_id !== "string" ||
+      typeof nama !== "string" ||
+      typeof bobot !== "string"
+    ) {
+      return { error: "Data tidak valid!" };
+    }
+
+    const parsedKriteriaId = Number.parseInt(kriteria_id);
+    if (isNaN(parsedKriteriaId)) {
+      return { error: "ID kriteria tidak valid!" };
+    }
+
     const existing = await db
       .select()
-      .from(sub_kriteria)
+      .from(subKriteria)
       .where(
         and(
-          eq(sub_kriteria.kriteria_id, kriteria_id),
-          eq(sub_kriteria.nama, nama)
+          eq(subKriteria.kriteria_id, parsedKriteriaId),
+          eq(subKriteria.nama, nama)
         )
       );
 
@@ -104,25 +132,31 @@ export async function updateSubKriteria(
 
     const current = await db
       .select()
-      .from(sub_kriteria)
-      .where(eq(sub_kriteria.id, id));
+      .from(subKriteria)
+      .where(eq(subKriteria.id, id));
 
     if (current.length > 0) {
       const currentData = current[0];
+      const keteranganValue =
+        typeof keterangan === "string" ? keterangan : null;
       if (
-        currentData.kriteria_id === kriteria_id &&
+        currentData.kriteria_id === parsedKriteriaId &&
         currentData.nama === nama &&
         currentData.bobot === bobot &&
-        currentData.keterangan === keterangan
+        currentData.keterangan === keteranganValue
       ) {
         return { error: "Data tidak ada perubahan!", type: "info" };
       }
     }
 
-    await db
-      .update(sub_kriteria)
-      .set({ kriteria_id, nama, bobot, keterangan })
-      .where(eq(sub_kriteria.id, id));
+    const updateData: Partial<NewSubKriteria> = {
+      kriteria_id: parsedKriteriaId,
+      nama,
+      bobot,
+      keterangan: typeof keterangan === "string" ? keterangan : null,
+    };
+
+    await db.update(subKriteria).set(updateData).where(eq(subKriteria.id, id));
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-sub-kriteria");
@@ -139,7 +173,7 @@ export async function deleteSubKriteria(
   id: number
 ): Promise<SubKriteriaFormState> {
   try {
-    await db.delete(sub_kriteria).where(eq(sub_kriteria.id, id));
+    await db.delete(subKriteria).where(eq(subKriteria.id, id));
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-sub-kriteria");

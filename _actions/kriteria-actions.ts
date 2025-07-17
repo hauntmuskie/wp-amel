@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/database";
-import { kriteria } from "@/database/schema";
+import { kriteria, type NewKriteria } from "@/database/schema";
 import { eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -26,13 +26,26 @@ export async function createKriteria(
   formData: FormData
 ): Promise<KriteriaFormState> {
   try {
-    const kode = formData.get("kode") as string;
-    const nama = formData.get("nama") as string;
-    const bobot = formData.get("bobot") as string;
-    const jenis = formData.get("jenis") as "benefit" | "cost";
+    const kode = formData.get("kode");
+    const nama = formData.get("nama");
+    const bobot = formData.get("bobot");
+    const jenis = formData.get("jenis");
 
     if (!kode || !nama || !bobot || !jenis) {
       return { error: "Semua field harus diisi!" };
+    }
+
+    if (
+      typeof kode !== "string" ||
+      typeof nama !== "string" ||
+      typeof bobot !== "string" ||
+      typeof jenis !== "string"
+    ) {
+      return { error: "Data tidak valid!" };
+    }
+
+    if (jenis !== "benefit" && jenis !== "cost") {
+      return { error: "Jenis harus benefit atau cost!" };
     }
 
     const existing = await db
@@ -52,12 +65,14 @@ export async function createKriteria(
       }
     }
 
-    await db.insert(kriteria).values({
+    const newKriteria: NewKriteria = {
       kode,
       nama,
       bobot,
       jenis,
-    });
+    };
+
+    await db.insert(kriteria).values(newKriteria);
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-kriteria");
@@ -76,13 +91,26 @@ export async function updateKriteria(
   formData: FormData
 ): Promise<KriteriaFormState> {
   try {
-    const kode = formData.get("kode") as string;
-    const nama = formData.get("nama") as string;
-    const bobot = formData.get("bobot") as string;
-    const jenis = formData.get("jenis") as "benefit" | "cost";
+    const kode = formData.get("kode");
+    const nama = formData.get("nama");
+    const bobot = formData.get("bobot");
+    const jenis = formData.get("jenis");
 
     if (!kode || !nama || !bobot || !jenis) {
       return { error: "Semua field harus diisi!" };
+    }
+
+    if (
+      typeof kode !== "string" ||
+      typeof nama !== "string" ||
+      typeof bobot !== "string" ||
+      typeof jenis !== "string"
+    ) {
+      return { error: "Data tidak valid!" };
+    }
+
+    if (jenis !== "benefit" && jenis !== "cost") {
+      return { error: "Jenis harus benefit atau cost!" };
     }
 
     const existing = await db
@@ -118,10 +146,9 @@ export async function updateKriteria(
       }
     }
 
-    await db
-      .update(kriteria)
-      .set({ kode, nama, bobot, jenis })
-      .where(eq(kriteria.id, id));
+    const updateData: Partial<NewKriteria> = { kode, nama, bobot, jenis };
+
+    await db.update(kriteria).set(updateData).where(eq(kriteria.id, id));
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-kriteria");
