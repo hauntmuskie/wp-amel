@@ -46,7 +46,6 @@ export default function DataAlternatifPage() {
     Array<{ value: string; label: string }>
   >([]);
 
-  // Server Action states
   const [createState, createAction, isCreating] = useActionState<
     AlternatifFormState,
     FormData
@@ -67,7 +66,6 @@ export default function DataAlternatifPage() {
     fetchEnums();
   }, []);
 
-  // Handle create action result
   useEffect(() => {
     if (createState.success) {
       setIsAddOpen(false);
@@ -83,7 +81,6 @@ export default function DataAlternatifPage() {
     }
   }, [createState]);
 
-  // Handle update action result
   useEffect(() => {
     if (updateState.success) {
       setIsEditOpen(false);

@@ -97,15 +97,31 @@ export default function DataPenilaianPage() {
     try {
       const result = await getPenilaian();
       if (result.success && result.data) {
-        // Map null string fields to empty string
-        const mappedData = result.data.map((item: any) => ({
-          ...item,
-          kode_alternatif: item.kode_alternatif ?? "",
-          nama_alternatif: item.nama_alternatif ?? "",
-          kode_kriteria: item.kode_kriteria ?? "",
-          nama_kriteria: item.nama_kriteria ?? "",
-          nama_sub_kriteria: item.nama_sub_kriteria ?? "",
-        }));
+        const mappedData = result.data.map(
+          (item: {
+            id: number;
+            alternatif_id: number;
+            kriteria_id: number;
+            sub_kriteria_id: number;
+            nilai: string;
+            kode_alternatif: string | null;
+            nama_alternatif: string | null;
+            kode_kriteria: string | null;
+            nama_kriteria: string | null;
+            nama_sub_kriteria: string | null;
+          }) => ({
+            id: item.id,
+            alternatif_id: item.alternatif_id,
+            kriteria_id: item.kriteria_id,
+            sub_kriteria_id: item.sub_kriteria_id,
+            nilai: item.nilai,
+            kode_alternatif: item.kode_alternatif ?? "",
+            nama_alternatif: item.nama_alternatif ?? "",
+            kode_kriteria: item.kode_kriteria ?? "",
+            nama_kriteria: item.nama_kriteria ?? "",
+            nama_sub_kriteria: item.nama_sub_kriteria ?? "",
+          })
+        );
         setPenilaianData(mappedData);
       }
     } catch (error) {
@@ -141,13 +157,21 @@ export default function DataPenilaianPage() {
     try {
       const result = await getSubKriteria();
       if (result.success && result.data) {
-        // Map null string fields to empty string
-        const mappedData = result.data.map((item: any) => ({
-          ...item,
-          keterangan: item.keterangan ?? "",
-          kode_kriteria: item.kode_kriteria ?? "",
-          nama_kriteria: item.nama_kriteria ?? "",
-        }));
+        const mappedData = result.data.map(
+          (item: {
+            id: number;
+            kriteria_id: number;
+            nama: string;
+            bobot: string;
+            keterangan: string | null;
+          }) => ({
+            id: item.id,
+            kriteria_id: item.kriteria_id,
+            nama: item.nama,
+            bobot: item.bobot,
+            keterangan: item.keterangan ?? "",
+          })
+        );
         setSubKriteriaData(mappedData);
       }
     } catch (error) {
@@ -181,7 +205,6 @@ export default function DataPenilaianPage() {
       const alternatif_id = parseInt(formData.alternatif_id);
       const promises: Promise<PenilaianFormState>[] = [];
 
-      // Create penilaian for each kriteria
       kriteriaData.forEach((kriteria) => {
         const subKriteriaId =
           formData[
@@ -261,13 +284,11 @@ export default function DataPenilaianPage() {
     setIsSubmitting(true);
 
     try {
-      // Delete existing penilaian for this alternatif
       await deletePenilaianByAlternatif(editingItem.alternatif_id);
 
       const alternatif_id = parseInt(formData.alternatif_id);
       const promises: Promise<PenilaianFormState>[] = [];
 
-      // Create new penilaian for each kriteria
       kriteriaData.forEach((kriteria) => {
         const subKriteriaId =
           formData[

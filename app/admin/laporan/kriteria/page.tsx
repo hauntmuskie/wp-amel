@@ -43,7 +43,6 @@ export default function KriteriaReportPage({
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 

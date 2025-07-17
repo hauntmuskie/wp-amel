@@ -44,7 +44,6 @@ export default function SubKriteriaReportPage({
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 

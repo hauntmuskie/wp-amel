@@ -49,7 +49,7 @@ export default function PenilaianReportPage({
           getPenilaian(),
           getKriteria(),
         ]);
-        
+
         if (penilaianResult.success && penilaianResult.data) {
           setData(penilaianResult.data);
         }
@@ -67,7 +67,10 @@ export default function PenilaianReportPage({
   }, []);
 
   const groupedPenilaian = data
-    .filter((item) => item.kode_alternatif && item.nama_alternatif && item.kode_kriteria) // Filter out records with missing data
+    .filter(
+      (item) =>
+        item.kode_alternatif && item.nama_alternatif && item.kode_kriteria
+    )
     .reduce(
       (acc, curr) => {
         const key = `${curr.kode_alternatif}-${curr.nama_alternatif}`;

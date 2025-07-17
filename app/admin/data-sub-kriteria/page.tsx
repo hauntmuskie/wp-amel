@@ -53,7 +53,6 @@ export default function DataSubKriteriaPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Server Action states
   const [createState, createAction, isCreating] = useActionState<
     SubKriteriaFormState,
     FormData
@@ -74,7 +73,6 @@ export default function DataSubKriteriaPage() {
     fetchKriteria();
   }, []);
 
-  // Handle create action result
   useEffect(() => {
     if (createState.success) {
       setIsAddOpen(false);
@@ -90,7 +88,6 @@ export default function DataSubKriteriaPage() {
     }
   }, [createState]);
 
-  // Handle update action result
   useEffect(() => {
     if (updateState.success) {
       setIsEditOpen(false);

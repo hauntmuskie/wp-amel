@@ -42,7 +42,6 @@ export default function AlternatifReportPage({
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 

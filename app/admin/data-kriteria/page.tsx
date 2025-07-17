@@ -47,7 +47,6 @@ export default function DataKriteriaPage() {
     Array<{ value: string; label: string }>
   >([]);
 
-  // Server Action states
   const [createState, createAction, isCreating] = useActionState<
     KriteriaFormState,
     FormData
@@ -66,7 +65,6 @@ export default function DataKriteriaPage() {
     fetchEnums();
   }, []);
 
-  // Handle create action result
   useEffect(() => {
     if (createState.success) {
       setIsAddOpen(false);
@@ -82,7 +80,6 @@ export default function DataKriteriaPage() {
     }
   }, [createState]);
 
-  // Handle update action result
   useEffect(() => {
     if (updateState.success) {
       setIsEditOpen(false);

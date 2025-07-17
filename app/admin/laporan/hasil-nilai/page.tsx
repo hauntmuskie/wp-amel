@@ -44,7 +44,6 @@ export default function HasilNilaiReportPage({
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
