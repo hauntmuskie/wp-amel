@@ -1,12 +1,14 @@
 import { defineConfig } from "drizzle-kit";
 
-// Use USE_LOCAL_DB env variable to control DB selection
-const isLocal = process.env.USE_LOCAL_DB === "1" || process.env.USE_LOCAL_DB === "true";
+const isLocal =
+  process.env.USE_LOCAL_DB === "1" || process.env.USE_LOCAL_DB === "true";
 
 let config;
 if (!isLocal) {
   if (!process.env.TIDB_URL) {
-    throw new Error("TIDB_URL environment variable must be set when using TiDB Serverless");
+    throw new Error(
+      "TIDB_URL environment variable must be set when using TiDB Serverless"
+    );
   }
   config = defineConfig({
     schema: "./database/schema.ts",

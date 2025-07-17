@@ -1,18 +1,15 @@
 import * as schema from "./schema";
 
-// Use USE_LOCAL_DB env variable to control DB selection ("true" = local, anything else = TiDB)
 const isLocal = String(process.env.USE_LOCAL_DB).toLowerCase() === "true";
 
 let db;
 if (!isLocal) {
-  // Use TiDB Serverless
   const { drizzle } = require("drizzle-orm/tidb-serverless");
   db = drizzle({
     connection: { url: process.env.TIDB_URL },
     schema,
   });
 } else {
-  // Use local MySQL
   const { drizzle } = require("drizzle-orm/mysql2");
   const mysql = require("mysql2/promise");
   const poolConnection = mysql.createPool({
