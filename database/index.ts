@@ -1,32 +1,13 @@
-// import { drizzle } from "drizzle-orm/tidb-serverless";
-
-// import * as schema from "./schema";
-
-// export const db = drizzle({
-//   connection: { url: process.env.TIDB_URL! },
-//   schema,
-// });
-
-// export default db;
-
 import * as schema from "./schema";
 
 let db;
 if (process.env.NODE_ENV === "production") {
-  // TiDB in production
-  // Use drizzle-orm/tidb-serverless
-  // https://orm.drizzle.team/docs/tidb-serverless
-  // TiDB_URL example: mysql://user:password@host:port/dbname
-  // Make sure to install drizzle-orm@latest and @tidbcloud/serverless
-  // and set TIDB_URL in your production environment
-  // @ts-ignore
   const { drizzle } = require("drizzle-orm/tidb-serverless");
   db = drizzle({
     connection: { url: process.env.TIDB_URL },
     schema,
   });
 } else {
-  // MySQL in development
   const { drizzle } = require("drizzle-orm/mysql2");
   const mysql = require("mysql2/promise");
   const poolConnection = mysql.createPool({
