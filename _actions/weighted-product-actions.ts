@@ -1,6 +1,6 @@
 "use server";
 
-import db from "@/database/dev";
+import db from "@/database";
 import {
   alternatif,
   kriteria,
@@ -46,12 +46,7 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
     }
 
     const dataPenilaian = await db
-      .select({
-        alternatif_id: penilaian.alternatif_id,
-        kriteria_id: penilaian.kriteria_id,
-        nilai: penilaian.nilai,
-        kode_kriteria: kriteria.kode,
-      })
+      .select()
       .from(penilaian)
       .leftJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id));
 
@@ -70,9 +65,9 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
       const nilai: { [key: string]: number } = {};
 
       dataPenilaian.forEach((pen) => {
-        if (pen.alternatif_id === alt.id && pen.kode_kriteria) {
-          nilai[pen.kode_kriteria] = Number.parseFloat(
-            pen.nilai?.toString() || "0"
+        if (pen.penilaian.alternatif_id === alt.id && pen.kriteria?.kode) {
+          nilai[pen.kriteria.kode] = Number.parseFloat(
+            pen.penilaian.nilai?.toString() || "0"
           );
         }
       });
@@ -187,15 +182,7 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
     }
 
     const hasilLengkap = await db
-      .select({
-        id: hasil_perhitungan.id,
-        alternatif_id: hasil_perhitungan.alternatif_id,
-        kode_alternatif: alternatif.kode,
-        nama_alternatif: alternatif.nama,
-        nilai_vektor_s: hasil_perhitungan.nilai_vektor_s,
-        nilai_vektor_v: hasil_perhitungan.nilai_vektor_v,
-        ranking: hasil_perhitungan.ranking,
-      })
+      .select()
       .from(hasil_perhitungan)
       .leftJoin(alternatif, eq(hasil_perhitungan.alternatif_id, alternatif.id))
       .orderBy(hasil_perhitungan.ranking);
@@ -223,29 +210,13 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
 export async function getWeightedProductResults() {
   try {
     const hasilData = await db
-      .select({
-        id: hasil_perhitungan.id,
-        alternatif_id: hasil_perhitungan.alternatif_id,
-        kode_alternatif: alternatif.kode,
-        nama_alternatif: alternatif.nama,
-        nilai_vektor_s: hasil_perhitungan.nilai_vektor_s,
-        nilai_vektor_v: hasil_perhitungan.nilai_vektor_v,
-        ranking: hasil_perhitungan.ranking,
-      })
+      .select()
       .from(hasil_perhitungan)
       .leftJoin(alternatif, eq(hasil_perhitungan.alternatif_id, alternatif.id))
       .orderBy(hasil_perhitungan.ranking);
 
     const normalisasiData = await db
-      .select({
-        id: normalisasi_bobot.id,
-        kriteria_id: normalisasi_bobot.kriteria_id,
-        kode_kriteria: kriteria.kode,
-        nama_kriteria: kriteria.nama,
-        jenis_kriteria: kriteria.jenis,
-        bobot_awal: normalisasi_bobot.bobot_awal,
-        bobot_normal: normalisasi_bobot.bobot_normal,
-      })
+      .select()
       .from(normalisasi_bobot)
       .leftJoin(kriteria, eq(normalisasi_bobot.kriteria_id, kriteria.id));
 

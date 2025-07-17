@@ -1,6 +1,6 @@
 "use server";
 
-import db from "@/database/dev";
+import db from "@/database";
 import { sub_kriteria, kriteria } from "@/database/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -14,15 +14,7 @@ export type SubKriteriaFormState = {
 export async function getSubKriteria() {
   try {
     const data = await db
-      .select({
-        id: sub_kriteria.id,
-        kriteria_id: sub_kriteria.kriteria_id,
-        nama: sub_kriteria.nama,
-        bobot: sub_kriteria.bobot,
-        keterangan: sub_kriteria.keterangan,
-        kode_kriteria: kriteria.kode,
-        nama_kriteria: kriteria.nama,
-      })
+      .select()
       .from(sub_kriteria)
       .leftJoin(kriteria, eq(sub_kriteria.kriteria_id, kriteria.id));
 

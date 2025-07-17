@@ -1,6 +1,6 @@
 "use server";
 
-import db from "@/database/dev";
+import db from "@/database";
 import {
   penilaian,
   alternatif,
@@ -19,18 +19,7 @@ export type PenilaianFormState = {
 export async function getPenilaian() {
   try {
     const data = await db
-      .select({
-        id: penilaian.id,
-        alternatif_id: penilaian.alternatif_id,
-        kriteria_id: penilaian.kriteria_id,
-        sub_kriteria_id: penilaian.sub_kriteria_id,
-        nilai: penilaian.nilai,
-        kode_alternatif: alternatif.kode,
-        nama_alternatif: alternatif.nama,
-        kode_kriteria: kriteria.kode,
-        nama_kriteria: kriteria.nama,
-        nama_sub_kriteria: sub_kriteria.nama,
-      })
+      .select()
       .from(penilaian)
       .leftJoin(alternatif, eq(penilaian.alternatif_id, alternatif.id))
       .leftJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id))
