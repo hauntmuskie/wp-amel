@@ -130,7 +130,7 @@ export default function LoginPage() {
               className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg tracking-wider shadow-md transition-all"
               disabled={isLoading}
             >
-              {isLoading ? "Loading..." : "Login"}
+              {isLoading ? "Tunggu Sebentar..." : "Login"}
             </Button>
           </form>
         </div>
