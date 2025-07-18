@@ -1,14 +1,12 @@
 "use server";
 
-import db from "@/database";
+import { db } from "@/database";
 import {
   alternatif,
   kriteria,
   penilaian,
   hasilPerhitungan,
   normalisasiBobot,
-  type NewHasilPerhitungan,
-  type NewNormalisasiBobot,
 } from "@/database/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -48,7 +46,12 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
     }
 
     const dataPenilaian = await db
-      .select()
+      .select({
+        alternatif_id: penilaian.alternatif_id,
+        kriteria_id: penilaian.kriteria_id,
+        nilai: penilaian.nilai,
+        kode_kriteria: kriteria.kode,
+      })
       .from(penilaian)
       .leftJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id));
 
@@ -67,9 +70,9 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
       const nilai: { [key: string]: number } = {};
 
       dataPenilaian.forEach((pen) => {
-        if (pen.penilaian.alternatif_id === alt.id && pen.kriteria?.kode) {
-          nilai[pen.kriteria.kode] = Number.parseFloat(
-            pen.penilaian.nilai?.toString() || "0"
+        if (pen.alternatif_id === alt.id && pen.kode_kriteria) {
+          nilai[pen.kode_kriteria] = Number.parseFloat(
+            pen.nilai?.toString() || "0"
           );
         }
       });
@@ -109,12 +112,11 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
     await db.delete(normalisasiBobot);
 
     for (const kn of kriteriaNormalisasi) {
-      const newNormalisasi: NewNormalisasiBobot = {
+      await db.insert(normalisasiBobot).values({
         kriteria_id: kn.id,
         bobot_awal: kn.bobot.toString(),
         bobot_normal: kn.bobot_normal.toString(),
-      };
-      await db.insert(normalisasiBobot).values(newNormalisasi);
+      });
     }
 
     const vektorS: { [key: number]: number } = {};
@@ -176,18 +178,24 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
           ? 0
           : hasil.nilai_vektor_v;
 
-      const newHasil: NewHasilPerhitungan = {
+      await db.insert(hasilPerhitungan).values({
         alternatif_id: hasil.alternatif_id,
         nilai_vektor_s: nilaiS.toString(),
         nilai_vektor_v: nilaiV.toString(),
         ranking: hasil.ranking,
-      };
-
-      await db.insert(hasilPerhitungan).values(newHasil);
+      });
     }
 
     const hasilLengkap = await db
-      .select()
+      .select({
+        id: hasilPerhitungan.id,
+        alternatif_id: hasilPerhitungan.alternatif_id,
+        kode_alternatif: alternatif.kode,
+        nama_alternatif: alternatif.nama,
+        nilai_vektor_s: hasilPerhitungan.nilai_vektor_s,
+        nilai_vektor_v: hasilPerhitungan.nilai_vektor_v,
+        ranking: hasilPerhitungan.ranking,
+      })
       .from(hasilPerhitungan)
       .leftJoin(alternatif, eq(hasilPerhitungan.alternatif_id, alternatif.id))
       .orderBy(hasilPerhitungan.ranking);
@@ -198,8 +206,8 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
     return {
       success: true,
       data: {
-        normalisasi_bobot: kriteriaNormalisasi,
-        hasil_perhitungan: hasilLengkap,
+        normalisasiBobot: kriteriaNormalisasi,
+        hasilPerhitungan: hasilLengkap,
         data_input: {
           alternatif: alternatifNilai,
           kriteria: kriteriaNormalisasi,
@@ -215,21 +223,37 @@ export async function calculateWeightedProduct(): Promise<WeightedProductState> 
 export async function getWeightedProductResults() {
   try {
     const hasilData = await db
-      .select()
+      .select({
+        id: hasilPerhitungan.id,
+        alternatif_id: hasilPerhitungan.alternatif_id,
+        kode_alternatif: alternatif.kode,
+        nama_alternatif: alternatif.nama,
+        nilai_vektor_s: hasilPerhitungan.nilai_vektor_s,
+        nilai_vektor_v: hasilPerhitungan.nilai_vektor_v,
+        ranking: hasilPerhitungan.ranking,
+      })
       .from(hasilPerhitungan)
       .leftJoin(alternatif, eq(hasilPerhitungan.alternatif_id, alternatif.id))
       .orderBy(hasilPerhitungan.ranking);
 
     const normalisasiData = await db
-      .select()
+      .select({
+        id: normalisasiBobot.id,
+        kriteria_id: normalisasiBobot.kriteria_id,
+        kode_kriteria: kriteria.kode,
+        nama_kriteria: kriteria.nama,
+        jenis_kriteria: kriteria.jenis,
+        bobot_awal: normalisasiBobot.bobot_awal,
+        bobot_normal: normalisasiBobot.bobot_normal,
+      })
       .from(normalisasiBobot)
       .leftJoin(kriteria, eq(normalisasiBobot.kriteria_id, kriteria.id));
 
     return {
       success: true,
       data: {
-        hasil_perhitungan: hasilData,
-        normalisasi_bobot: normalisasiData,
+        hasilPerhitungan: hasilData,
+        normalisasiBobot: normalisasiData,
       },
     };
   } catch (error) {

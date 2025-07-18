@@ -128,20 +128,20 @@ export const normalisasiBobotRelations = relations(
   })
 );
 
-export type alternatif = InferSelectModel<typeof alternatif>;
-export type NewAlternatif = InferInsertModel<typeof alternatif>;
+export type Alternatif = InferSelectModel<typeof alternatif>;
+export type InsertAlternatif = InferInsertModel<typeof alternatif>;
 
 export type Kriteria = InferSelectModel<typeof kriteria>;
-export type NewKriteria = InferInsertModel<typeof kriteria>;
+export type InsertKriteria = InferInsertModel<typeof kriteria>;
 
 export type SubKriteria = InferSelectModel<typeof subKriteria>;
-export type NewSubKriteria = InferInsertModel<typeof subKriteria>;
+export type InsertSubKriteria = InferInsertModel<typeof subKriteria>;
 
 export type Penilaian = InferSelectModel<typeof penilaian>;
-export type NewPenilaian = InferInsertModel<typeof penilaian>;
+export type InsertPenilaian = InferInsertModel<typeof penilaian>;
 
 export type HasilPerhitungan = InferSelectModel<typeof hasilPerhitungan>;
-export type NewHasilPerhitungan = InferInsertModel<typeof hasilPerhitungan>;
+export type InsertHasilPerhitungan = InferInsertModel<typeof hasilPerhitungan>;
 
 export type NormalisasiBobot = InferSelectModel<typeof normalisasiBobot>;
-export type NewNormalisasiBobot = InferInsertModel<typeof normalisasiBobot>;
+export type InsertNormalisasiBobot = InferInsertModel<typeof normalisasiBobot>;

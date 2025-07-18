@@ -1,7 +1,7 @@
 "use server";
 
-import db from "@/database";
-import { alternatif, type NewAlternatif } from "@/database/schema";
+import { db } from "@/database";
+import { alternatif } from "@/database/schema";
 import { eq, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -26,24 +26,12 @@ export async function createAlternatif(
   formData: FormData
 ): Promise<AlternatifFormState> {
   try {
-    const kode = formData.get("kode");
-    const nama = formData.get("nama");
-    const jenis = formData.get("jenis");
+    const kode = formData.get("kode") as string;
+    const nama = formData.get("nama") as string;
+    const jenis = formData.get("jenis") as "Interior" | "Eksterior";
 
     if (!kode || !nama || !jenis) {
       return { error: "Semua field harus diisi!" };
-    }
-
-    if (
-      typeof kode !== "string" ||
-      typeof nama !== "string" ||
-      typeof jenis !== "string"
-    ) {
-      return { error: "Data tidak valid!" };
-    }
-
-    if (jenis !== "Interior" && jenis !== "Eksterior") {
-      return { error: "Jenis harus Interior atau Eksterior!" };
     }
 
     const existing = await db
@@ -63,13 +51,11 @@ export async function createAlternatif(
       }
     }
 
-    const newAlternatif: NewAlternatif = {
+    await db.insert(alternatif).values({
       kode,
       nama,
       jenis,
-    };
-
-    await db.insert(alternatif).values(newAlternatif);
+    });
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-alternatif");
@@ -89,24 +75,12 @@ export async function updateAlternatif(
   formData: FormData
 ): Promise<AlternatifFormState> {
   try {
-    const kode = formData.get("kode");
-    const nama = formData.get("nama");
-    const jenis = formData.get("jenis");
+    const kode = formData.get("kode") as string;
+    const nama = formData.get("nama") as string;
+    const jenis = formData.get("jenis") as "Interior" | "Eksterior";
 
     if (!kode || !nama || !jenis) {
       return { error: "Semua field harus diisi!" };
-    }
-
-    if (
-      typeof kode !== "string" ||
-      typeof nama !== "string" ||
-      typeof jenis !== "string"
-    ) {
-      return { error: "Data tidak valid!" };
-    }
-
-    if (jenis !== "Interior" && jenis !== "Eksterior") {
-      return { error: "Jenis harus Interior atau Eksterior!" };
     }
 
     const existing = await db
@@ -144,9 +118,10 @@ export async function updateAlternatif(
       }
     }
 
-    const updateData: Partial<NewAlternatif> = { kode, nama, jenis };
-
-    await db.update(alternatif).set(updateData).where(eq(alternatif.id, id));
+    await db
+      .update(alternatif)
+      .set({ kode, nama, jenis })
+      .where(eq(alternatif.id, id));
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-alternatif");

@@ -1,12 +1,11 @@
 "use server";
 
-import db from "@/database";
+import { db } from "@/database";
 import {
   penilaian,
   alternatif,
   kriteria,
   subKriteria,
-  type NewPenilaian,
 } from "@/database/schema";
 import { eq, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -20,7 +19,18 @@ export type PenilaianFormState = {
 export async function getPenilaian() {
   try {
     const data = await db
-      .select()
+      .select({
+        id: penilaian.id,
+        alternatif_id: penilaian.alternatif_id,
+        kriteria_id: penilaian.kriteria_id,
+        sub_kriteria_id: penilaian.sub_kriteria_id,
+        nilai: penilaian.nilai,
+        kode_alternatif: alternatif.kode,
+        nama_alternatif: alternatif.nama,
+        kode_kriteria: kriteria.kode,
+        nama_kriteria: kriteria.nama,
+        nama_sub_kriteria: subKriteria.nama,
+      })
       .from(penilaian)
       .leftJoin(alternatif, eq(penilaian.alternatif_id, alternatif.id))
       .leftJoin(kriteria, eq(penilaian.kriteria_id, kriteria.id))
@@ -56,14 +66,12 @@ export async function createPenilaian(
       };
     }
 
-    const newPenilaian: NewPenilaian = {
+    await db.insert(penilaian).values({
       alternatif_id,
       kriteria_id,
       sub_kriteria_id,
       nilai,
-    };
-
-    await db.insert(penilaian).values(newPenilaian);
+    });
 
     revalidatePath("/admin");
     revalidatePath("/admin/data-penilaian");
