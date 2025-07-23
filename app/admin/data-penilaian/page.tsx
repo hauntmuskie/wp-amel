@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
 import { ClipboardList } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
 import { DataTableContainer } from "../_components/data-table-container";
@@ -21,41 +22,30 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Penilaian {
+import type { Alternatif, Kriteria } from "@/database/schema";
+
+// Matches the shape returned by getPenilaian()
+type Penilaian = {
   id: number;
   alternatif_id: number;
   kriteria_id: number;
   sub_kriteria_id: number;
   nilai: string;
-  kode_alternatif: string;
-  nama_alternatif: string;
-  kode_kriteria: string;
-  nama_kriteria: string;
-  nama_sub_kriteria: string;
-}
-
-interface Alternatif {
-  id: number;
-  kode: string;
-  nama: string;
-  jenis: string;
-}
-
-interface Kriteria {
-  id: number;
-  kode: string;
-  nama: string;
-  bobot: string;
-  jenis: string;
-}
-
-interface SubKriteria {
-  id: number;
-  kriteria_id: number;
-  nama: string;
-  bobot: string;
-  keterangan: string;
-}
+  kode_alternatif: string | null;
+  nama_alternatif: string | null;
+  kode_kriteria: string | null;
+  nama_kriteria: string | null;
+  nama_sub_kriteria: string | null;
+};
+import {
+  getPenilaian,
+  deletePenilaianByAlternatif,
+  createBulkPenilaian,
+  updateBulkPenilaian,
+} from "@/_actions/evaluation";
+import { getAlternatif } from "@/_actions/alternative";
+import { getKriteria } from "@/_actions/criteria";
+import { getSubKriteria } from "@/_actions/sub-criteria";
 
 export default function DataPenilaianPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -64,7 +54,17 @@ export default function DataPenilaianPage() {
   const [penilaianData, setPenilaianData] = useState<Penilaian[]>([]);
   const [alternatifData, setAlternatifData] = useState<Alternatif[]>([]);
   const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
-  const [subKriteriaData, setSubKriteriaData] = useState<SubKriteria[]>([]);
+
+  type SubKriteriaRow = {
+    id: number;
+    kriteria_id: number;
+    nama: string;
+    bobot: string;
+    keterangan: string | null;
+    kode_kriteria: string | null;
+    nama_kriteria: string | null;
+  };
+  const [subKriteriaData, setSubKriteriaData] = useState<SubKriteriaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,65 +79,26 @@ export default function DataPenilaianPage() {
     c5_sub_kriteria_id: "",
   });
 
-  useEffect(() => {
-    fetchPenilaian();
-    fetchAlternatif();
-    fetchKriteria();
-    fetchSubKriteria();
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    const [penRes, altRes, kritRes, subkritRes] = await Promise.all([
+      getPenilaian(),
+      getAlternatif(),
+      getKriteria(),
+      getSubKriteria(),
+    ]);
+    if (penRes.success && penRes.data)
+      setPenilaianData(penRes.data as Penilaian[]);
+    if (altRes.success) setAlternatifData(altRes.data as Alternatif[]);
+    if (kritRes.success) setKriteriaData(kritRes.data as Kriteria[]);
+    if (subkritRes.success && subkritRes.data)
+      setSubKriteriaData(subkritRes.data as SubKriteriaRow[]);
+    setLoading(false);
   }, []);
 
-  const fetchPenilaian = async () => {
-    try {
-      const response = await fetch("/api/penilaian", {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setPenilaianData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching penilaian:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAlternatif = async () => {
-    try {
-      const response = await fetch("/api/alternatif");
-      if (response.ok) {
-        const data = await response.json();
-        setAlternatifData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching alternatif:", error);
-    }
-  };
-
-  const fetchKriteria = async () => {
-    try {
-      const response = await fetch("/api/kriteria");
-      if (response.ok) {
-        const data = await response.json();
-        setKriteriaData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching kriteria:", error);
-    }
-  };
-
-  const fetchSubKriteria = async () => {
-    try {
-      const response = await fetch("/api/sub-kriteria");
-      if (response.ok) {
-        const data = await response.json();
-        setSubKriteriaData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching sub kriteria:", error);
-    }
-  };
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   const getSubKriteriaByKriteria = (kriteriaKode: string) => {
     const kriteria = kriteriaData.find((k) => k.kode === kriteriaKode);
@@ -160,57 +121,36 @@ export default function DataPenilaianPage() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       const penilaianArray = kriteriaData
         .map((kriteria) => {
           const formFieldKey =
             `${kriteria.kode.toLowerCase()}_sub_kriteria_id` as keyof typeof formData;
           const subKriteriaId = formData[formFieldKey] as string;
-
+          const subKriteria = subKriteriaData.find(
+            (sk) => sk.id === parseInt(subKriteriaId)
+          );
           return {
             kriteria_id: kriteria.id,
             sub_kriteria_id: parseInt(subKriteriaId),
+            nilai: subKriteria?.bobot || "0",
           };
         })
         .filter((item) => item.sub_kriteria_id && !isNaN(item.sub_kriteria_id));
 
-      let hasError = false;
-      let errorMessage = "";
+      const res = await createBulkPenilaian(
+        parseInt(formData.alternatif_id),
+        penilaianArray
+      );
 
-      for (const pen of penilaianArray) {
-        const subKriteria = subKriteriaData.find(
-          (sk) => sk.id === pen.sub_kriteria_id
-        );
-        if (subKriteria) {
-          const response = await fetch("/api/penilaian", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              alternatif_id: parseInt(formData.alternatif_id),
-              kriteria_id: pen.kriteria_id,
-              sub_kriteria_id: pen.sub_kriteria_id,
-              nilai: subKriteria.bobot,
-            }),
-          });
-
-          if (!response.ok) {
-            const data = await response.json();
-            hasError = true;
-            errorMessage = data.error || "Gagal menambahkan data penilaian!";
-            break;
-          }
-        }
-      }
-
-      if (hasError) {
-        toast.error(errorMessage);
-      } else {
-        await fetchPenilaian();
+      if (res.success) {
+        await fetchAll();
         setIsAddOpen(false);
         resetForm();
         toast.success("Data penilaian berhasil ditambahkan!");
         router.refresh();
+      } else {
+        toast.error(res.error || "Gagal menambahkan data penilaian!");
       }
     } catch (error) {
       console.error("Error adding penilaian:", error);
@@ -226,7 +166,6 @@ export default function DataPenilaianPage() {
       (p) => p.alternatif_id === item.alternatif_id
     );
 
-    // Build form data dynamically based on existing kriteria
     const formUpdate = {
       alternatif_id: item.alternatif_id.toString(),
       c1_sub_kriteria_id: "",
@@ -252,60 +191,39 @@ export default function DataPenilaianPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
-
     setIsSubmitting(true);
-
     try {
-      const alternatifPenilaian = penilaianData.filter(
-        (p) => p.alternatif_id === editingItem.alternatif_id
-      );
-      for (const pen of alternatifPenilaian) {
-        await fetch(`/api/penilaian?id=${pen.id}`, { method: "DELETE" });
-      }
-
       // Build penilaian array dynamically based on existing kriteria
       const penilaianArray = kriteriaData
         .map((kriteria) => {
           const formFieldKey =
             `${kriteria.kode.toLowerCase()}_sub_kriteria_id` as keyof typeof formData;
           const subKriteriaId = formData[formFieldKey] as string;
-
+          const subKriteria = subKriteriaData.find(
+            (sk) => sk.id === parseInt(subKriteriaId)
+          );
           return {
             kriteria_id: kriteria.id,
             sub_kriteria_id: parseInt(subKriteriaId),
+            nilai: subKriteria?.bobot || "0",
           };
         })
         .filter((item) => item.sub_kriteria_id && !isNaN(item.sub_kriteria_id));
 
-      for (const pen of penilaianArray) {
-        const subKriteria = subKriteriaData.find(
-          (sk) => sk.id === pen.sub_kriteria_id
-        );
-        if (subKriteria) {
-          const response = await fetch("/api/penilaian", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              alternatif_id: parseInt(formData.alternatif_id),
-              kriteria_id: pen.kriteria_id,
-              sub_kriteria_id: pen.sub_kriteria_id,
-              nilai: subKriteria.bobot,
-            }),
-          });
+      const res = await updateBulkPenilaian(
+        parseInt(formData.alternatif_id),
+        penilaianArray
+      );
 
-          if (!response.ok) {
-            const data = await response.json();
-            toast.error(data.error || "Gagal memperbarui data penilaian!");
-            return;
-          }
-        }
+      if (res.success) {
+        await fetchAll();
+        setIsEditOpen(false);
+        resetForm();
+        toast.success("Data penilaian berhasil diperbarui!");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Gagal memperbarui data penilaian!");
       }
-
-      await fetchPenilaian();
-      setIsEditOpen(false);
-      resetForm();
-      toast.success("Data penilaian berhasil diperbarui!");
-      router.refresh();
     } catch (error) {
       console.error("Error updating penilaian:", error);
       toast.error("Gagal memperbarui data penilaian!");
@@ -316,13 +234,8 @@ export default function DataPenilaianPage() {
 
   const handleDelete = async (alternatif_id: number) => {
     try {
-      const alternatifPenilaian = penilaianData.filter(
-        (p) => p.alternatif_id === alternatif_id
-      );
-      for (const pen of alternatifPenilaian) {
-        await fetch(`/api/penilaian?id=${pen.id}`, { method: "DELETE" });
-      }
-      await fetchPenilaian();
+      await deletePenilaianByAlternatif(alternatif_id);
+      await fetchAll();
       toast.success("Data penilaian berhasil dihapus!");
       router.refresh();
     } catch (error) {
@@ -333,15 +246,20 @@ export default function DataPenilaianPage() {
 
   const groupedPenilaian = penilaianData.reduce(
     (acc, curr) => {
+      const kodeAlternatif = curr.kode_alternatif ?? "";
+      const namaAlternatif = curr.nama_alternatif ?? "";
+      const kodeKriteria = curr.kode_kriteria ?? "";
       if (!acc[curr.alternatif_id]) {
         acc[curr.alternatif_id] = {
           alternatif_id: curr.alternatif_id,
-          kode_alternatif: curr.kode_alternatif,
-          nama_alternatif: curr.nama_alternatif,
+          kode_alternatif: kodeAlternatif,
+          nama_alternatif: namaAlternatif,
           kriteria: {},
         };
       }
-      acc[curr.alternatif_id].kriteria[curr.kode_kriteria] = Number(curr.nilai);
+      if (kodeKriteria) {
+        acc[curr.alternatif_id].kriteria[kodeKriteria] = Number(curr.nilai);
+      }
       return acc;
     },
     {} as Record<
@@ -355,8 +273,17 @@ export default function DataPenilaianPage() {
     >
   );
 
-  const filteredData = Object.values(groupedPenilaian).filter(
-    (item: { kode_alternatif?: string; nama_alternatif?: string }) =>
+  type GroupedPenilaian = {
+    alternatif_id: number;
+    kode_alternatif: string | null;
+    nama_alternatif: string | null;
+    kriteria: Record<string, number>;
+  };
+
+  const filteredData: GroupedPenilaian[] = Object.values(
+    groupedPenilaian as Record<number, GroupedPenilaian>
+  ).filter(
+    (item) =>
       item.kode_alternatif?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.nama_alternatif?.toLowerCase().includes(searchTerm.toLowerCase())
   );

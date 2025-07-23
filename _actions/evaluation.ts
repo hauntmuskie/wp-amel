@@ -117,3 +117,69 @@ export async function deletePenilaianByAlternatif(
     return { error: "Failed to delete penilaian" };
   }
 }
+
+export async function createBulkPenilaian(
+  alternatif_id: number,
+  penilaianData: Array<{
+    kriteria_id: number;
+    sub_kriteria_id: number;
+    nilai: string;
+  }>
+): Promise<PenilaianFormState> {
+  try {
+    await db
+      .delete(penilaian)
+      .where(eq(penilaian.alternatif_id, alternatif_id));
+
+    for (const data of penilaianData) {
+      await db.insert(penilaian).values({
+        alternatif_id,
+        kriteria_id: data.kriteria_id,
+        sub_kriteria_id: data.sub_kriteria_id,
+        nilai: data.nilai,
+      });
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-penilaian");
+    revalidatePath("/admin/data-perhitungan");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error creating bulk penilaian:", error);
+    return { error: "Gagal menyimpan data penilaian!" };
+  }
+}
+
+export async function updateBulkPenilaian(
+  alternatif_id: number,
+  penilaianData: Array<{
+    kriteria_id: number;
+    sub_kriteria_id: number;
+    nilai: string;
+  }>
+): Promise<PenilaianFormState> {
+  try {
+    await db
+      .delete(penilaian)
+      .where(eq(penilaian.alternatif_id, alternatif_id));
+
+    for (const data of penilaianData) {
+      await db.insert(penilaian).values({
+        alternatif_id,
+        kriteria_id: data.kriteria_id,
+        sub_kriteria_id: data.sub_kriteria_id,
+        nilai: data.nilai,
+      });
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/data-penilaian");
+    revalidatePath("/admin/data-perhitungan");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating bulk penilaian:", error);
+    return { error: "Gagal memperbarui data penilaian!" };
+  }
+}

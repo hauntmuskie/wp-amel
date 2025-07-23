@@ -16,39 +16,46 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Kriteria {
+import { getKriteria } from "@/_actions/criteria";
+import {
+  calculateWeightedProduct,
+  getWeightedProductResults,
+} from "@/_actions/weighted-product";
+
+// Types matching the server action response shape
+type KriteriaRow = {
   id: number;
   kode: string;
   nama: string;
-  bobot: string;
+  bobot: string | number;
   jenis: string;
-}
+};
 
-interface NormalisasiBobot {
+type NormalisasiBobotRow = {
   id: number;
   kriteria_id: number;
-  kode_kriteria: string;
-  nama_kriteria: string;
-  jenis_kriteria: string;
+  kode_kriteria: string | null;
+  nama_kriteria: string | null;
+  jenis_kriteria: string | null;
   bobot_awal: string;
   bobot_normal: string;
-}
+};
 
-interface HasilPerhitungan {
+type HasilPerhitunganRow = {
   id: number;
   alternatif_id: number;
-  kode_alternatif: string;
-  nama_alternatif: string;
+  kode_alternatif: string | null;
+  nama_alternatif: string | null;
   nilai_vektor_s: string;
   nilai_vektor_v: string;
   ranking: number;
-}
+};
 
 export default function DataHasilNilaiPage() {
-  const [normalisasiData, setNormalisasiData] = useState<NormalisasiBobot[]>(
+  const [normalisasiData, setNormalisasiData] = useState<NormalisasiBobotRow[]>(
     []
   );
-  const [hasilData, setHasilData] = useState<HasilPerhitungan[]>([]);
+  const [hasilData, setHasilData] = useState<HasilPerhitunganRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
   const [kriteriaCodes, setKriteriaCodes] = useState<string[]>([]);
@@ -60,10 +67,9 @@ export default function DataHasilNilaiPage() {
 
   const fetchKriteria = async () => {
     try {
-      const response = await fetch("/api/kriteria");
-      if (response.ok) {
-        const data = await response.json();
-        const codes = data.map((k: Kriteria) => k.kode).sort();
+      const res = await getKriteria();
+      if (res.success && res.data) {
+        const codes = res.data.map((k: KriteriaRow) => k.kode).sort();
         setKriteriaCodes(codes);
       }
     } catch (error) {
@@ -73,14 +79,10 @@ export default function DataHasilNilaiPage() {
 
   const fetchResults = async () => {
     try {
-      const response = await fetch(`/api/weighted-product/results`, {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setNormalisasiData(data.normalisasi_bobot || []);
-        setHasilData(data.hasil_perhitungan || []);
+      const res = await getWeightedProductResults();
+      if (res.success && res.data) {
+        setNormalisasiData(res.data.normalisasiBobot || []);
+        setHasilData(res.data.hasilPerhitungan || []);
       }
     } catch (error) {
       console.error("Error fetching results:", error);
@@ -92,19 +94,17 @@ export default function DataHasilNilaiPage() {
   const handleCalculate = async () => {
     setCalculating(true);
     try {
-      const response = await fetch("/api/weighted-product/calculate", {
-        method: "POST",
-      });
+      const res = await calculateWeightedProduct();
 
-      if (response.ok) {
-        const data = await response.json();
-        setNormalisasiData(data.normalisasi_bobot || []);
-        setHasilData(data.hasil_perhitungan || []);
+      if (res.success && res.data) {
+        setNormalisasiData(res.data.normalisasiBobot || []);
+        setHasilData(res.data.hasilPerhitungan || []);
         toast.success("Perhitungan Weighted Product berhasil!");
         await fetchResults();
       } else {
         toast.error(
-          "Gagal melakukan perhitungan. Pastikan data alternatif, kriteria, dan penilaian sudah lengkap."
+          res.error ||
+            "Gagal melakukan perhitungan. Pastikan data alternatif, kriteria, dan penilaian sudah lengkap."
         );
       }
     } catch (error) {
@@ -121,7 +121,7 @@ export default function DataHasilNilaiPage() {
 
   return (
     <div className="p-6">
-      <PageHeader icon={Calculator} title="Data Perhitungan" />
+      <PageHeader icon={Calculator} title="Perhitungan WP" />
 
       <div className="flex justify-end mb-6">
         <Button
@@ -195,7 +195,11 @@ export default function DataHasilNilaiPage() {
                           );
                           return (
                             <TableCell className="text-center" key={kode}>
-                              {k ? Number(k.bobot_normal).toFixed(5) : "-"}
+                              {k
+                                ? parseFloat(
+                                    Number(k.bobot_normal).toFixed(5)
+                                  ).toString()
+                                : "-"}
                             </TableCell>
                           );
                         })}
@@ -260,9 +264,9 @@ export default function DataHasilNilaiPage() {
                             {index + 1}
                           </TableCell>
                           <TableCell className="font-medium">
-                            {item.kode_alternatif}
+                            {item.kode_alternatif || "N/A"}
                           </TableCell>
-                          <TableCell>{item.nama_alternatif}</TableCell>
+                          <TableCell>{item.nama_alternatif || "N/A"}</TableCell>
                           <TableCell className="text-center">
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                               {formatNumber(item.nilai_vektor_s)}
@@ -330,7 +334,8 @@ export default function DataHasilNilaiPage() {
               Berdasarkan perhitungan Weighted Product, alternatif terbaik
               adalah{" "}
               <span className="font-bold text-green-700">
-                {hasilData.find((h) => h.ranking === 1)?.nama_alternatif}
+                {hasilData.find((h) => h.ranking === 1)?.nama_alternatif ||
+                  "N/A"}
               </span>{" "}
               dengan nilai vektor V ={" "}
               <span className="font-bold text-green-700">

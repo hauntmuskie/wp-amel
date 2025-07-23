@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/report-layout";
+import { ReportLayout } from "@/app/admin/laporan/_components/report-layout";
 import {
   Table,
   TableBody,
@@ -10,6 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+import { getSubKriteriaReport } from "@/_actions/reports";
 
 interface SubKriteria {
   id: number;
@@ -33,9 +35,17 @@ export default function SubKriteriaReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/sub-kriteria");
-        const result = await response.json();
-        setData(result);
+        const res = await getSubKriteriaReport();
+        if (res.success && res.data) {
+          const sortedData = res.data.sort((a: SubKriteria, b: SubKriteria) => {
+            const codeComparison = a.kriteria_kode.localeCompare(
+              b.kriteria_kode
+            );
+            if (codeComparison !== 0) return codeComparison;
+            return parseFloat(b.bobot) - parseFloat(a.bobot);
+          });
+          setData(sortedData);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -49,7 +59,10 @@ export default function SubKriteriaReportPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+          <span className="text-lg text-gray-600">Tunggu Sebentar...</span>
+        </div>
       </div>
     );
   }

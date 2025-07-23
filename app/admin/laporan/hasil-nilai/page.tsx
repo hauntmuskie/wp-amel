@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/report-layout";
+import { ReportLayout } from "@/app/admin/laporan/_components/report-layout";
 import {
   Table,
   TableBody,
@@ -10,6 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+import { getHasilNilaiReport } from "@/_actions/reports";
 
 interface HasilNilai {
   id: number;
@@ -34,9 +36,10 @@ export default function HasilNilaiReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/hasil-nilai");
-        const result = await response.json();
-        setData(result);
+        const res = await getHasilNilaiReport();
+        if (res.success && res.data) {
+          setData(res.data);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -50,7 +53,10 @@ export default function HasilNilaiReportPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+          <span className="text-lg text-gray-600">Tunggu Sebentar...</span>
+        </div>
       </div>
     );
   }

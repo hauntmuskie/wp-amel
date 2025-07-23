@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
 import { BarChart3 } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
 import { DataTableContainer } from "../_components/data-table-container";
@@ -20,14 +21,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-interface Kriteria {
-  id: number;
-  kode: string;
-  nama: string;
-  bobot: string;
-  jenis: "benefit" | "cost";
-}
+import type { Kriteria } from "@/database/schema";
+import {
+  getKriteria,
+  createKriteria,
+  updateKriteria,
+  deleteKriteria,
+} from "@/_actions/criteria";
+import { getEnums } from "@/_actions/enum";
 
 export default function DataKriteriaPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -37,7 +38,9 @@ export default function DataKriteriaPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [jenisOptions, setJenisOptions] = useState<Array<{value: string, label: string}>>([]);
+  const [jenisOptions, setJenisOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -48,16 +51,15 @@ export default function DataKriteriaPage() {
   });
 
   useEffect(() => {
-    fetchKriteria();
     fetchEnums();
+    fetchKriteria();
   }, []);
 
   const fetchEnums = async () => {
     try {
-      const response = await fetch("/api/enums");
-      if (response.ok) {
-        const data = await response.json();
-        setJenisOptions(data.jenisKriteria);
+      const res = await getEnums();
+      if (res.success && res.data?.jenisKriteria) {
+        setJenisOptions(res.data.jenisKriteria);
       }
     } catch (error) {
       console.error("Error fetching enums:", error);
@@ -65,20 +67,12 @@ export default function DataKriteriaPage() {
   };
 
   const fetchKriteria = async () => {
-    try {
-      const response = await fetch("/api/kriteria", {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setKriteriaData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching kriteria:", error);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const res = await getKriteria();
+    if (res.success) {
+      setKriteriaData(res.data as Kriteria[]);
     }
+    setLoading(false);
   };
 
   const resetForm = () => {
@@ -89,24 +83,23 @@ export default function DataKriteriaPage() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const response = await fetch("/api/kriteria", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      const fd = new FormData();
+      fd.append("kode", formData.kode);
+      fd.append("nama", formData.nama);
+      fd.append("bobot", formData.bobot);
+      fd.append("jenis", formData.jenis);
+      const res = await createKriteria({}, fd);
+      if (res.success) {
         await fetchKriteria();
         setIsAddOpen(false);
         resetForm();
-        toast.success(data.message || "Data kriteria berhasil ditambahkan!");
+        toast.success("Data kriteria berhasil ditambahkan!");
         router.refresh();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Info: tidak ada perubahan.");
       } else {
-        toast.error(data.error || "Gagal menambahkan data kriteria!");
+        toast.error(res.error || "Gagal menambahkan data kriteria!");
       }
     } catch (error) {
       console.error("Error adding kriteria:", error);
@@ -121,7 +114,7 @@ export default function DataKriteriaPage() {
     setFormData({
       kode: item.kode,
       nama: item.nama,
-      bobot: item.bobot,
+      bobot: Math.round(parseFloat(item.bobot)).toString(),
       jenis: item.jenis,
     });
     setIsEditOpen(true);
@@ -130,30 +123,24 @@ export default function DataKriteriaPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
-
     setIsSubmitting(true);
-
     try {
-      const response = await fetch("/api/kriteria", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingItem.id, ...formData }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.type === "info") {
-          toast.info(data.error);
-        } else {
-          await fetchKriteria();
-          toast.success(data.message || "Data kriteria berhasil diperbarui!");
-          router.refresh();
-        }
+      const fd = new FormData();
+      fd.append("kode", formData.kode);
+      fd.append("nama", formData.nama);
+      fd.append("bobot", formData.bobot);
+      fd.append("jenis", formData.jenis);
+      const res = await updateKriteria(editingItem.id, {}, fd);
+      if (res.success) {
+        await fetchKriteria();
+        toast.success("Data kriteria berhasil diperbarui!");
+        router.refresh();
         setIsEditOpen(false);
         resetForm();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Info: tidak ada perubahan.");
       } else {
-        toast.error(data.error || "Gagal memperbarui data kriteria!");
+        toast.error(res.error || "Gagal memperbarui data kriteria!");
       }
     } catch (error) {
       console.error("Error updating kriteria:", error);
@@ -165,16 +152,15 @@ export default function DataKriteriaPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/kriteria?id=${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
+      const res = await deleteKriteria(id);
+      if (res.success) {
         await fetchKriteria();
         toast.success("Data kriteria berhasil dihapus!");
         router.refresh();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Info: tidak ada perubahan.");
       } else {
-        toast.error("Gagal menghapus data kriteria!");
+        toast.error(res.error || "Gagal menghapus data kriteria!");
       }
     } catch (error) {
       console.error("Error deleting kriteria:", error);
@@ -338,18 +324,6 @@ export default function DataKriteriaPage() {
               id="edit-kode"
               value={formData.kode}
               onChange={(value) => setFormData({ ...formData, kode: value })}
-              required
-            />
-            <TextField
-              label="Bobot Kriteria"
-              id="edit-bobot"
-              type="number"
-              min="1"
-              max="5"
-              step="1"
-              value={formData.bobot}
-              onChange={handleBobotChange}
-              placeholder="Masukkan Nilai Bobot 1-5"
               required
             />
             <TextField

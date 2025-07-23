@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
 import { Database } from "lucide-react";
 import { PageHeader } from "../_components/page-header";
 import { DataTableContainer } from "../_components/data-table-container";
@@ -21,12 +22,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Alternatif {
-  id: number;
-  kode: string;
-  nama: string;
-  jenis: "Interior" | "Eksterior";
-}
+import type { Alternatif } from "@/database/schema";
+
+import {
+  getAlternatif,
+  createAlternatif,
+  updateAlternatif,
+  deleteAlternatif,
+} from "@/_actions/alternative";
+import { getEnums } from "@/_actions/enum";
 
 export default function DataAlternatifPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -48,16 +52,15 @@ export default function DataAlternatifPage() {
   });
 
   useEffect(() => {
-    fetchAlternatif();
     fetchEnums();
+    fetchAlternatif();
   }, []);
 
   const fetchEnums = async () => {
     try {
-      const response = await fetch("/api/enums");
-      if (response.ok) {
-        const data = await response.json();
-        setJenisOptions(data.jenisAlternatif);
+      const res = await getEnums();
+      if (res.success && res.data?.jenisAlternatif) {
+        setJenisOptions(res.data.jenisAlternatif);
       }
     } catch (error) {
       console.error("Error fetching enums:", error);
@@ -65,20 +68,12 @@ export default function DataAlternatifPage() {
   };
 
   const fetchAlternatif = async () => {
-    try {
-      const response = await fetch("/api/alternatif", {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAlternatifData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching alternatif:", error);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const res = await getAlternatif();
+    if (res.success) {
+      setAlternatifData(res.data as Alternatif[]);
     }
+    setLoading(false);
   };
 
   const resetForm = () => {
@@ -89,24 +84,22 @@ export default function DataAlternatifPage() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
-      const response = await fetch("/api/alternatif", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      const fd = new FormData();
+      fd.append("kode", formData.kode);
+      fd.append("nama", formData.nama);
+      fd.append("jenis", formData.jenis);
+      const res = await createAlternatif({}, fd);
+      if (res.success) {
         await fetchAlternatif();
         setIsAddOpen(false);
         resetForm();
-        toast.success(data.message || "Data alternatif berhasil ditambahkan!");
+        toast.success("Data alternatif berhasil ditambahkan!");
         router.refresh();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Info: tidak ada perubahan.");
       } else {
-        toast.error(data.error || "Gagal menambahkan data alternatif!");
+        toast.error(res.error || "Gagal menambahkan data alternatif!");
       }
     } catch (error) {
       console.error("Error adding alternatif:", error);
@@ -129,30 +122,23 @@ export default function DataAlternatifPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItem) return;
-
     setIsSubmitting(true);
-
     try {
-      const response = await fetch("/api/alternatif", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingItem.id, ...formData }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.type === "info") {
-          toast.info(data.error);
-        } else {
-          await fetchAlternatif();
-          toast.success(data.message || "Data alternatif berhasil diperbarui!");
-          router.refresh();
-        }
+      const fd = new FormData();
+      fd.append("kode", formData.kode);
+      fd.append("nama", formData.nama);
+      fd.append("jenis", formData.jenis);
+      const res = await updateAlternatif(editingItem.id, {}, fd);
+      if (res.success) {
+        await fetchAlternatif();
+        toast.success("Data alternatif berhasil diperbarui!");
+        router.refresh();
         setIsEditOpen(false);
         resetForm();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Info: tidak ada perubahan.");
       } else {
-        toast.error(data.error || "Gagal memperbarui data alternatif!");
+        toast.error(res.error || "Gagal memperbarui data alternatif!");
       }
     } catch (error) {
       console.error("Error updating alternatif:", error);
@@ -164,16 +150,15 @@ export default function DataAlternatifPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/alternatif?id=${id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
+      const res = await deleteAlternatif(id);
+      if (res.success) {
         await fetchAlternatif();
         toast.success("Data alternatif berhasil dihapus!");
         router.refresh();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Info: tidak ada perubahan.");
       } else {
-        toast.error("Gagal menghapus data alternatif!");
+        toast.error(res.error || "Gagal menghapus data alternatif!");
       }
     } catch (error) {
       console.error("Error deleting alternatif:", error);

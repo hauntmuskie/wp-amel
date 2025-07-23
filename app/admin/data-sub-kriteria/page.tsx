@@ -21,28 +21,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface SubKriteria {
+import {
+  getSubKriteria,
+  createSubKriteria,
+  updateSubKriteria,
+  deleteSubKriteria,
+} from "@/_actions/sub-criteria";
+import { getKriteria } from "@/_actions/criteria";
+
+// Types matching the server action response shape
+type SubKriteriaRow = {
   id: number;
   kriteria_id: number;
   nama: string;
   bobot: string;
-  keterangan: string;
+  keterangan: string | null;
   kode_kriteria: string;
   nama_kriteria: string;
-}
+};
 
-interface Kriteria {
+type KriteriaRow = {
   id: number;
   kode: string;
   nama: string;
-}
+};
 
 export default function DataSubKriteriaPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<SubKriteria | null>(null);
-  const [subKriteriaData, setSubKriteriaData] = useState<SubKriteria[]>([]);
-  const [kriteriaData, setKriteriaData] = useState<Kriteria[]>([]);
+  const [editingItem, setEditingItem] = useState<SubKriteriaRow | null>(null);
+  const [subKriteriaData, setSubKriteriaData] = useState<SubKriteriaRow[]>([]);
+  const [kriteriaData, setKriteriaData] = useState<KriteriaRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,13 +71,9 @@ export default function DataSubKriteriaPage() {
 
   const fetchSubKriteria = async () => {
     try {
-      const response = await fetch("/api/sub-kriteria", {
-        cache: "no-store",
-        next: { revalidate: 0 },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSubKriteriaData(data);
+      const res = await getSubKriteria();
+      if (res.success && res.data) {
+        setSubKriteriaData(res.data as SubKriteriaRow[]);
       }
     } catch (error) {
       console.error("Error fetching sub kriteria:", error);
@@ -79,10 +84,9 @@ export default function DataSubKriteriaPage() {
 
   const fetchKriteria = async () => {
     try {
-      const response = await fetch("/api/kriteria");
-      if (response.ok) {
-        const data = await response.json();
-        setKriteriaData(data);
+      const res = await getKriteria();
+      if (res.success) {
+        setKriteriaData(res.data as KriteriaRow[]);
       }
     } catch (error) {
       console.error("Error fetching kriteria:", error);
@@ -99,25 +103,24 @@ export default function DataSubKriteriaPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/sub-kriteria", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          kriteria_id: parseInt(formData.kriteria_id),
-        }),
-      });
+      const fd = new FormData();
+      fd.append("kriteria_id", formData.kriteria_id);
+      fd.append("nama", formData.nama);
+      fd.append("bobot", formData.bobot);
+      fd.append("keterangan", formData.keterangan);
 
-      const data = await response.json();
+      const res = await createSubKriteria({}, fd);
 
-      if (response.ok) {
+      if (res.success) {
         await fetchSubKriteria();
         setIsAddOpen(false);
         resetForm();
-        toast.success(data.message || "Data sub kriteria berhasil ditambahkan!");
+        toast.success("Data sub kriteria berhasil ditambahkan!");
         router.refresh();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Data tidak ada perubahan!");
       } else {
-        toast.error(data.error || "Gagal menambahkan data sub kriteria!");
+        toast.error(res.error || "Gagal menambahkan data sub kriteria!");
       }
     } catch (error) {
       console.error("Error adding sub kriteria:", error);
@@ -127,7 +130,7 @@ export default function DataSubKriteriaPage() {
     }
   };
 
-  const handleEdit = (item: SubKriteria) => {
+  const handleEdit = (item: SubKriteriaRow) => {
     setEditingItem(item);
     setFormData({
       kriteria_id: item.kriteria_id.toString(),
@@ -145,30 +148,26 @@ export default function DataSubKriteriaPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/sub-kriteria", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: editingItem.id,
-          ...formData,
-          kriteria_id: parseInt(formData.kriteria_id),
-        }),
-      });
+      const fd = new FormData();
+      fd.append("kriteria_id", formData.kriteria_id);
+      fd.append("nama", formData.nama);
+      fd.append("bobot", formData.bobot);
+      fd.append("keterangan", formData.keterangan);
 
-      const data = await response.json();
+      const res = await updateSubKriteria(editingItem.id, {}, fd);
 
-      if (response.ok) {
-        if (data.type === "info") {
-          toast.info(data.error);
-        } else {
-          await fetchSubKriteria();
-          toast.success(data.message || "Data sub kriteria berhasil diperbarui!");
-          router.refresh();
-        }
+      if (res.success) {
+        await fetchSubKriteria();
+        toast.success("Data sub kriteria berhasil diperbarui!");
+        router.refresh();
+        setIsEditOpen(false);
+        resetForm();
+      } else if (res.type === "info") {
+        toast.info(res.error || "Data tidak ada perubahan!");
         setIsEditOpen(false);
         resetForm();
       } else {
-        toast.error(data.error || "Gagal memperbarui data sub kriteria!");
+        toast.error(res.error || "Gagal memperbarui data sub kriteria!");
       }
     } catch (error) {
       console.error("Error updating sub kriteria:", error);
@@ -180,16 +179,14 @@ export default function DataSubKriteriaPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`/api/sub-kriteria?id=${id}`, {
-        method: "DELETE",
-      });
+      const res = await deleteSubKriteria(id);
 
-      if (response.ok) {
+      if (res.success) {
         await fetchSubKriteria();
         toast.success("Data sub kriteria berhasil dihapus!");
         router.refresh();
       } else {
-        toast.error("Gagal menghapus data sub kriteria!");
+        toast.error(res.error || "Gagal menghapus data sub kriteria!");
       }
     } catch (error) {
       console.error("Error deleting sub kriteria:", error);

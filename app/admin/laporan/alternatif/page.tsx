@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReportLayout } from "@/components/report-layout";
+import { ReportLayout } from "@/app/admin/laporan/_components/report-layout";
 import {
   Table,
   TableBody,
@@ -11,12 +11,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Alternatif {
-  id: number;
-  kode: string;
-  nama: string;
-  jenis: "Interior" | "Eksterior";
-}
+import type { Alternatif } from "@/database/schema";
+import { getAlternatifReport } from "@/_actions/reports";
 
 interface AlternatifReportPageProps {
   onBack?: () => void;
@@ -31,9 +27,10 @@ export default function AlternatifReportPage({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/reports/alternatif");
-        const result = await response.json();
-        setData(result);
+        const res = await getAlternatifReport();
+        if (res.success && res.data) {
+          setData(res.data);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -47,7 +44,10 @@ export default function AlternatifReportPage({
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"></div>
+          <span className="text-lg text-gray-600">Tunggu Sebentar...</span>
+        </div>
       </div>
     );
   }

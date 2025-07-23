@@ -3,8 +3,9 @@
 import React, { useRef } from "react";
 import Image from "next/image";
 import { PrintButton } from "./print-button";
+import { Button } from "@/components/ui/button";
+
 import TBRajaLogo from "@/public/image.png";
-import { Button } from "./ui/button";
 
 interface ReportLayoutProps {
   title: string;
@@ -97,9 +98,8 @@ export function ReportLayout({
           {children}
 
           {/* Footer */}
-          <div className="mt-16 flex justify-between items-end report-footer">
-            <div></div>
-            <div className="text-center">
+          <div className="mt-16 flex w-full justify-end items-end report-footer">
+            <div className="">
               <p className="mb-2">
                 Jakarta,{" "}
                 {new Date().toLocaleDateString("id-ID", {

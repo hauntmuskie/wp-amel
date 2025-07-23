@@ -15,6 +15,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { getAlternatif } from "@/_actions/alternative";
+import { getKriteria } from "@/_actions/criteria";
+import { getSubKriteria } from "@/_actions/sub-criteria";
+import { getWeightedProductResults } from "@/_actions/weighted-product";
+
 interface DashboardStats {
   alternatif: number;
   kriteria: number;
@@ -22,15 +27,15 @@ interface DashboardStats {
   penilaian: number;
 }
 
-interface HasilPerhitungan {
+type HasilPerhitunganRow = {
   id: number;
   alternatif_id: number;
-  kode_alternatif: string;
-  nama_alternatif: string;
+  kode_alternatif: string | null;
+  nama_alternatif: string | null;
   nilai_vektor_s: string;
   nilai_vektor_v: string;
   ranking: number;
-}
+};
 
 interface StatCard {
   title: string;
@@ -51,7 +56,7 @@ export default function BerandaPage() {
     subKriteria: 0,
     penilaian: 0,
   });
-  const [rankingData, setRankingData] = useState<HasilPerhitungan[]>([]);
+  const [rankingData, setRankingData] = useState<HasilPerhitunganRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [rankingLoading, setRankingLoading] = useState(true);
 
@@ -63,16 +68,14 @@ export default function BerandaPage() {
   const fetchStats = async () => {
     try {
       const [altRes, kritRes, subKritRes] = await Promise.all([
-        fetch("/api/alternatif"),
-        fetch("/api/kriteria"),
-        fetch("/api/sub-kriteria"),
+        getAlternatif(),
+        getKriteria(),
+        getSubKriteria(),
       ]);
 
-      const [altData, kritData, subKritData] = await Promise.all([
-        altRes.json(),
-        kritRes.json(),
-        subKritRes.json(),
-      ]);
+      const altData = altRes.success ? altRes.data || [] : [];
+      const kritData = kritRes.success ? kritRes.data || [] : [];
+      const subKritData = subKritRes.success ? subKritRes.data || [] : [];
 
       const penilaianCount = altData.length;
 
@@ -91,10 +94,9 @@ export default function BerandaPage() {
 
   const fetchRankingData = async () => {
     try {
-      const response = await fetch("/api/weighted-product/results");
-      if (response.ok) {
-        const data = await response.json();
-        setRankingData(data.hasil_perhitungan || []);
+      const res = await getWeightedProductResults();
+      if (res.success && res.data) {
+        setRankingData(res.data.hasilPerhitungan || []);
       }
     } catch (error) {
       console.error("Error fetching ranking data:", error);
@@ -235,9 +237,9 @@ export default function BerandaPage() {
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell className="font-medium">
-                        {item.kode_alternatif}
+                        {item.kode_alternatif || "N/A"}
                       </TableCell>
-                      <TableCell>{item.nama_alternatif}</TableCell>
+                      <TableCell>{item.nama_alternatif || "N/A"}</TableCell>
                       <TableCell className="text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                           {parseFloat(item.nilai_vektor_s).toFixed(5)}
@@ -283,7 +285,8 @@ export default function BerandaPage() {
               Berdasarkan perhitungan Weighted Product, cat dinding terbaik
               adalah{" "}
               <span className="font-bold text-green-700">
-                {rankingData.find((h) => h.ranking === 1)?.nama_alternatif}
+                {rankingData.find((h) => h.ranking === 1)?.nama_alternatif ||
+                  "N/A"}
               </span>{" "}
               dengan skor akhir{" "}
               <span className="font-bold text-green-700">

@@ -4,12 +4,11 @@ import { drizzle } from "drizzle-orm/tidb-serverless";
 import * as schema from "./schema";
 
 const client = connect({ url: process.env.TIDB_URL });
-const db = drizzle({
+
+export const db = drizzle({
   client,
   schema,
 });
-
-export { db };
 
 // import { drizzle } from "drizzle-orm/mysql2";
 // import mysql from "mysql2/promise";
@@ -28,5 +27,3 @@ export { db };
 //   schema,
 //   mode: "default",
 // });
-
-// export { db };

@@ -24,7 +24,7 @@ export function PrintButton({
         margin: 0 !important;
         padding: 0 !important;
         overflow: hidden;
-        font-family: Arial, sans-serif;
+        font-family: "Times New Roman", Times, serif;
       }
 
       #report-logo {
