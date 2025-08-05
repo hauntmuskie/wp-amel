@@ -39,10 +39,13 @@ export function PrintButton({
       }
 
       /* Table column headers alternating red and white backgrounds */
+
       table thead th:nth-child(odd),
       table th:nth-child(odd) {
         background-color: red !important;
         color: white !important;
+        font-size: 1.1em !important;
+        font-weight: 800 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
@@ -51,6 +54,8 @@ export function PrintButton({
       table th:nth-child(even) {
         background-color: red !important;
         color: white !important;
+        font-size: 1.1em !important;
+        font-weight: 800 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }

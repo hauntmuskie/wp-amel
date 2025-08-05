@@ -99,17 +99,22 @@ export function ReportLayout({
 
           {/* Footer */}
           <div className="mt-16 flex w-full justify-end items-end report-footer">
-            <div className="">
-              <p className="mb-2">
+            <div className="mr-5">
+              <p className="mb-2 text-lg font-normal">
                 Jakarta,{" "}
+                {new Date().toLocaleDateString("id-ID", {
+                  weekday: "long",
+                })}{" "}
                 {new Date().toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
                 })}
               </p>
-              <p className="mb-16">Pemilik Toko</p>
-              <p className="inline-block min-w-[200px] pb-1">Lukmanul Hakim</p>
+              <p className="mb-24 text-lg font-normal">Pemilik Toko</p>
+              <p className="inline-block min-w-[200px] pb-1 text-lg font-normal">
+                Lukmanul Hakim
+              </p>
             </div>
           </div>
         </div>
