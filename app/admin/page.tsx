@@ -194,7 +194,7 @@ export default function BerandaPage() {
                 Penerapan Metode Weighted Product (WP) Dalam Pemilihan Cat
                 Dinding Terbaik
               </span>
-              <span className="block">Pada TB Raja Bangunan</span>
+              <span className="block">Pada TB Raja Bangunan Berbasis Web</span>
             </h2>
           </div>
         </div>

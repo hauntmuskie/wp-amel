@@ -19,35 +19,35 @@ import { Button } from "@/components/ui/button";
 
 const laporanItems = [
   {
-    title: "Data Alternatif",
+    title: "Laporan Data Alternatif",
     key: "alternatif",
     icon: HiOutlineUsers,
     color: "bg-gradient-to-br from-blue-500 to-blue-600",
     hoverColor: "hover:from-blue-600 hover:to-blue-700",
   },
   {
-    title: "Data Kriteria",
+    title: "Laporan Data Kriteria",
     key: "kriteria",
     icon: HiOutlineViewGrid,
     color: "bg-gradient-to-br from-emerald-500 to-emerald-600",
     hoverColor: "hover:from-emerald-600 hover:to-emerald-700",
   },
   {
-    title: "Data Sub Kriteria",
+    title: "Laporan Data Sub Kriteria",
     key: "sub-kriteria",
     icon: HiOutlineClipboardList,
     color: "bg-gradient-to-br from-purple-500 to-purple-600",
     hoverColor: "hover:from-purple-600 hover:to-purple-700",
   },
   {
-    title: "Data Penilaian",
+    title: "Laporan Data Penilaian",
     key: "penilaian",
     icon: HiOutlineChartBar,
     color: "bg-gradient-to-br from-orange-500 to-orange-600",
     hoverColor: "hover:from-orange-600 hover:to-orange-700",
   },
   {
-    title: "Perhitungan WP",
+    title: "Laporan Perhitungan WP",
     key: "hasil-nilai",
     icon: HiOutlineTrendingUp,
     color: "bg-gradient-to-br from-red-500 to-red-600",

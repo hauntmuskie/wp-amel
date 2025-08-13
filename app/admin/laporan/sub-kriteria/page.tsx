@@ -68,7 +68,7 @@ export default function SubKriteriaReportPage({
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA SUB KRITERIA" onBack={onBack}>
+    <ReportLayout title="Laporan Data Sub Kriteria" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>

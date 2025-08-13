@@ -99,7 +99,7 @@ export default function PenilaianReportPage({
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA PENILAIAN" onBack={onBack}>
+    <ReportLayout title="Laporan Data Penilaian" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>

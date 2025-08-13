@@ -326,7 +326,7 @@ export default function DataPenilaianPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <SelectField
-            label="C1 - Kualitas Cat"
+            label="C1 - Kualitas Pigmen"
             id="add-c1"
             value={formData.c1_sub_kriteria_id}
             onChange={(value) =>
@@ -350,7 +350,7 @@ export default function DataPenilaianPage() {
           />
 
           <SelectField
-            label="C3 - Daya Tahan"
+            label="C3 - Ketahanan"
             id="add-c3"
             value={formData.c3_sub_kriteria_id}
             onChange={(value) =>
@@ -362,7 +362,7 @@ export default function DataPenilaianPage() {
           />
 
           <SelectField
-            label="C4 - Kemudahan Aplikasi"
+            label="C4 - Daya Sebar"
             id="add-c4"
             value={formData.c4_sub_kriteria_id}
             onChange={(value) =>
@@ -508,7 +508,7 @@ export default function DataPenilaianPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <SelectField
-                label="C1 - Kualitas Cat"
+                label="C1 - Kualitas Pigmen"
                 id="edit-c1"
                 value={formData.c1_sub_kriteria_id}
                 onChange={(value) =>
@@ -532,7 +532,7 @@ export default function DataPenilaianPage() {
               />
 
               <SelectField
-                label="C3 - Daya Tahan"
+                label="C3 - Ketahanan"
                 id="edit-c3"
                 value={formData.c3_sub_kriteria_id}
                 onChange={(value) =>
@@ -544,7 +544,7 @@ export default function DataPenilaianPage() {
               />
 
               <SelectField
-                label="C4 - Kemudahan Aplikasi"
+                label="C4 - Daya Sebar"
                 id="edit-c4"
                 value={formData.c4_sub_kriteria_id}
                 onChange={(value) =>

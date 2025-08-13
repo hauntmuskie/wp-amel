@@ -62,7 +62,7 @@ export default function HasilNilaiReportPage({
   }
 
   return (
-    <ReportLayout title="LAPORAN PERHITUNGAN WP" onBack={onBack}>
+    <ReportLayout title="Laporan Perhitungan WP" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -100,10 +100,10 @@ export default function HasilNilaiReportPage({
                   {item.alternatif_jenis}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {parseFloat(item.nilai_vektor_s).toFixed(6)}
+                  {parseFloat(item.nilai_vektor_s).toFixed(5)}
                 </TableCell>
                 <TableCell className="border border-black text-center">
-                  {parseFloat(item.nilai_vektor_v).toFixed(6)}
+                  {parseFloat(item.nilai_vektor_v).toFixed(5)}
                 </TableCell>
                 <TableCell className="border border-black text-center font-bold">
                   {item.ranking}

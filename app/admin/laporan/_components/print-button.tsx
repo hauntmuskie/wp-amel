@@ -28,7 +28,7 @@ export function PrintButton({
       }
 
       #report-logo {
-        max-width: 150px;
+        max-width: 170px;
         height: auto;
       }
 
@@ -42,7 +42,7 @@ export function PrintButton({
 
       table thead th:nth-child(odd),
       table th:nth-child(odd) {
-        background-color: red !important;
+        background-color: dark red !important;
         color: white !important;
         font-size: 1.1em !important;
         font-weight: 800 !important;
@@ -52,7 +52,7 @@ export function PrintButton({
 
       table thead th:nth-child(even),
       table th:nth-child(even) {
-        background-color: red !important;
+        background-color: dark red !important;
         color: white !important;
         font-size: 1.1em !important;
         font-weight: 800 !important;

@@ -53,7 +53,7 @@ export default function KriteriaReportPage({
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA KRITERIA" onBack={onBack}>
+    <ReportLayout title="Laporan Data Kriteria" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -68,10 +68,10 @@ export default function KriteriaReportPage({
                 Nama Kriteria
               </TableHead>
               <TableHead className="border border-black text-center">
-                Bobot
+                Bobot 
               </TableHead>
               <TableHead className="border border-black text-center">
-                Jenis
+                Atribut
               </TableHead>
             </TableRow>
           </TableHeader>

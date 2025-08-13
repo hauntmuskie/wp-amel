@@ -288,7 +288,7 @@ export default function DataKriteriaPage() {
                               : "bg-red-100 text-red-800"
                           }`}
                         >
-                          {item.jenis === "benefit" ? "Benefit" : "Cost"}
+                          {item.jenis === "benefit" ? "benefit" : "cost"}
                         </span>
                       </TableCell>
                       <TableCell>

@@ -53,7 +53,7 @@ export default function AlternatifReportPage({
   }
 
   return (
-    <ReportLayout title="LAPORAN DATA ALTERNATIF" onBack={onBack}>
+    <ReportLayout title="Laporan Data Alternatif" onBack={onBack}>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>

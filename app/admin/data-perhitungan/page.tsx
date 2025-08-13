@@ -154,7 +154,7 @@ export default function DataHasilNilaiPage() {
                       return (
                         <TableHead className="text-center" key={kode}>
                           {kode} (
-                          {k?.jenis_kriteria === "benefit" ? "Benefit" : "Cost"}
+                          {k?.jenis_kriteria === "benefit" ? "benefit" : "cost"}
                           )
                         </TableHead>
                       );
@@ -217,7 +217,7 @@ export default function DataHasilNilaiPage() {
               Perhitungan Normalisasi:
             </h4>
             <p className="text-sm text-gray-600 mb-2">
-              Formula: W<sub>j</sub> = W<sub>j</sub> / ∑W<sub>j</sub>
+              Rumus: W<sub>j</sub> = W<sub>j</sub> / ∑W<sub>j</sub>
             </p>
             <p className="text-sm text-gray-600">
               Untuk kriteria <strong>benefit</strong>: gunakan nilai positif (+)
